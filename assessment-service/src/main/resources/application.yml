@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: ${CAAB_DATASOURCE_URL}
+    driver-class-name: oracle.jdbc.OracleDriver
+    username: ${CAAB_DATASOURCE_USERNAME}
+    password: ${CAAB_DATASOURCE_PASSWORD}
+
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    hibernate:
+      ddl-auto: none
+    open-in-view: false

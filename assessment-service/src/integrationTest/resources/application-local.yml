@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@localhost:1521:CCMSPUI
+    driver-class-name: oracle.jdbc.OracleDriver
+    username: XXCCMS_PUI
+    password: XXCCMS_PUI
+
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    hibernate:
+      ddl-auto: none

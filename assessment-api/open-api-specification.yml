@@ -1,0 +1,65 @@
+openapi: '3.0.0'
+info:
+  title: 'laa-ccms-assessment-api'
+  version: '1.0.0'
+paths:
+  /assessment:
+    get:
+      tags:
+        - 'assessment'
+      summary: 'Assessment'
+      operationId: 'assessment'
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/assessmentDetails"
+        '400':
+          description: 'Bad request'
+        '401':
+          description: 'Unauthorized'
+        '404':
+          description: 'Not found'
+        '500':
+          description: 'Internal server error'
+
+components:
+  schemas:
+    assessmentDetails:
+      type: 'object'
+      properties:
+        content:
+          type: 'array'
+          default: [ ]
+          items:
+            $ref: "#/components/schemas/assessmentDetail"
+    assessmentDetail:
+      type: 'object'
+      properties:
+        id:
+          type: 'string'
+        owner_id:
+          type: 'string'
+        target_id:
+          type: 'string'
+        assessment:
+          type: 'string'
+        status:
+          type: 'string'
+        audit_detail:
+          $ref: '#/components/schemas/auditDetail'
+    auditDetail:
+      type: 'object'
+      properties:
+        created:
+          type: 'string'
+          format: 'date'
+        created_by:
+          type: 'string'
+        last_saved:
+          type: 'string'
+          format: 'date'
+        last_saved_by:
+          type: 'string'

@@ -1,0 +1,4 @@
+rootProject.name = 'laa-ccms-caab-assessment-api'
+
+include 'assessment-api'
+include 'assessment-service'
