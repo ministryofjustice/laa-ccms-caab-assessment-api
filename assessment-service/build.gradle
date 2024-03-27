@@ -66,9 +66,10 @@ task integrationTest(type: Test) {
 
 jacocoTestReport {
     sourceDirectories.from files('build/generated/sources/annotationProcessor/java/main')
+
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [])
+            fileTree(dir: it, exclude: ['**/AssessmentApplication.class'])
         }))
     }
 
@@ -79,7 +80,7 @@ jacocoTestCoverageVerification {
 
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [])
+            fileTree(dir: it, exclude: ['**/AssessmentApplication.class'])
         }))
     }
 
