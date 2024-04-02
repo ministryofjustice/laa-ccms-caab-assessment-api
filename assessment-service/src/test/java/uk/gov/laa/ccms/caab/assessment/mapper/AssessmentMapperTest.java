@@ -12,6 +12,11 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaAttribute;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaEntity;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaListEntity;
@@ -27,14 +32,14 @@ import uk.gov.laa.ccms.caab.assessment.model.AssessmentRelationshipDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentRelationshipTargetDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AuditDetail;
 
+@ExtendWith(MockitoExtension.class)
 class AssessmentMapperTest {
 
-  private AssessmentMapperImpl assessmentMapper;
+  @InjectMocks
+  private AssessmentMapperImpl assessmentMapper = new AssessmentMapperImpl();
 
-  @BeforeEach
-  void setUp() {
-    assessmentMapper = new AssessmentMapperImpl();
-  }
+  @Mock(answer = Answers.CALLS_REAL_METHODS)
+  private CommonMapper commonMapper;
 
   @Test
   void testToAssessmentDetailsWithNonNullSessions() {

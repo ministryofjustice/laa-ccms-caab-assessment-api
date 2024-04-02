@@ -2,6 +2,7 @@ package uk.gov.laa.ccms.caab.assessment.entity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -14,6 +15,7 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.Set;
 import lombok.Data;
+import org.hibernate.type.NumericBooleanConverter;
 
 /**
  * Represents an Oracle Intelligence Advisor relationship.
@@ -69,5 +71,6 @@ public class OpaRelationship {
    * Indicates if the relationship is prepopulated.
    */
   @Column(name = "PREPOPULATED")
-  private boolean prepopulated;
+  @Convert(converter = NumericBooleanConverter.class)
+  private Boolean prepopulated;
 }

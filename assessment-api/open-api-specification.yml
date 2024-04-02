@@ -10,7 +10,7 @@ paths:
       summary: 'get assessments'
       operationId: 'getAssessments'
       parameters:
-        - $ref: '#/components/parameters/assessmentParameter'
+        - $ref: '#/components/parameters/assessmentType'
         - name: 'provider-id'
           in: 'query'
           schema:
@@ -73,7 +73,7 @@ paths:
 
 components:
   parameters:
-    assessmentParameter:
+    assessmentType:
       name: name
       in: query
       schema:
@@ -131,6 +131,21 @@ components:
           format: 'date'
         last_saved_by:
           type: 'string'
+    assessmentEntityTypeDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/assessmentEntityDetail'
+      required:
+        - id
+        - entityType
+        - entities
     assessmentEntityDetail:
       type: object
       properties:
@@ -154,21 +169,6 @@ components:
         - id
         - entityId
         - prepopulated
-    assessmentEntityTypeDetail:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        entities:
-          type: array
-          items:
-            $ref: '#/components/schemas/assessmentEntityDetail'
-      required:
-        - id
-        - entityType
-        - entities
     assessmentAttributeDetail:
       type: object
       properties:

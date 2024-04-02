@@ -17,7 +17,8 @@ import uk.gov.laa.ccms.caab.assessment.model.AssessmentEntityTypeDetail;
 /**
  * Mapper for mapping between assessment entities and models.
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring",
+    uses = CommonMapper.class)
 public interface AssessmentMapper {
 
   @Mapping(target = "assessment", source = "name")

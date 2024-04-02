@@ -1,6 +1,7 @@
 package uk.gov.laa.ccms.caab.assessment.entity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -10,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.Data;
+import org.hibernate.type.NumericBooleanConverter;
 
 /**
  * Represents an attribute of an Oracle Intelligence Advisor entity.
@@ -74,13 +76,15 @@ public class OpaAttribute {
    * Indicates if the attribute is prepopulated.
    */
   @Column(name = "PREPOPULATED", nullable = false)
-  private boolean prepopulated;
+  @Convert(converter = NumericBooleanConverter.class)
+  private Boolean prepopulated;
 
   /**
    * Indicates if the attribute was asked in the session.
    */
   @Column(name = "ASKED")
-  private boolean asked = false;
+  @Convert(converter = NumericBooleanConverter.class)
+  private Boolean asked;
 
 
 }
