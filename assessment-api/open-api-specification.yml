@@ -3,12 +3,29 @@ info:
   title: 'laa-ccms-assessment-api'
   version: '1.0.0'
 paths:
-  /assessment:
+  /assessments:
     get:
       tags:
         - 'assessment'
-      summary: 'Assessment'
-      operationId: 'assessment'
+      summary: 'get assessments'
+      operationId: 'getAssessments'
+      parameters:
+        - $ref: '#/components/parameters/assessmentType'
+        - name: 'provider-id'
+          in: 'query'
+          schema:
+            type: 'string'
+            example: '1234567890'
+        - name: 'case-reference-number'
+          in: 'query'
+          schema:
+              type: 'string'
+              example: '1234567890'
+        - name: 'status'
+          in: 'query'
+          schema:
+            type: 'string'
+            example: 'INCOMPLETE'
       responses:
         '200':
           description: 'Successful operation'
@@ -24,8 +41,54 @@ paths:
           description: 'Not found'
         '500':
           description: 'Internal server error'
+  /assessments/{assessment-id}:
+    get:
+      tags:
+        - 'assessment'
+      summary: 'get assessment by id '
+      operationId: 'getAssessment'
+      parameters:
+        - name: 'assessment-id'
+          in: 'path'
+          required: true
+          schema:
+            type: 'integer'
+            format: 'int64'
+            example: '1234567890'
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/assessmentDetail"
+        '400':
+          description: 'Bad request'
+        '401':
+          description: 'Unauthorized'
+        '404':
+          description: 'Not found'
+        '500':
+          description: 'Internal server error'
 
 components:
+  parameters:
+    assessmentType:
+      name: name
+      in: query
+      schema:
+        type: string
+        enum:
+          - 'billingAssessment'
+          - 'billingAssessment_PREPOP'
+          - 'poaAssessment'
+          - 'poaAssessment_PREPOP'
+          - 'meansAssessment'
+          - 'meansAssessment_PREPOP'
+          - 'meritsAssessment'
+          - 'meritsAssessment_PREPOP'
+      example: 'meansAssessment'
+
   schemas:
     assessmentDetails:
       type: 'object'
@@ -40,14 +103,19 @@ components:
       properties:
         id:
           type: 'string'
-        owner_id:
+        provider_id:
           type: 'string'
-        target_id:
+        case_reference_number:
           type: 'string'
-        assessment:
+        name:
           type: 'string'
         status:
           type: 'string'
+        entity_types:
+          type: array
+          default: [ ]
+          items:
+            $ref: '#/components/schemas/assessmentEntityTypeDetail'
         audit_detail:
           $ref: '#/components/schemas/auditDetail'
     auditDetail:
@@ -63,3 +131,78 @@ components:
           format: 'date'
         last_saved_by:
           type: 'string'
+    assessmentEntityTypeDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/assessmentEntityDetail'
+      required:
+        - id
+        - entityType
+        - entities
+    assessmentEntityDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        attributes:
+          type: array
+          default: [ ]
+          items:
+            $ref: '#/components/schemas/assessmentAttributeDetail'
+        relations:
+          type: array
+          default: [ ]
+          items:
+            $ref: '#/components/schemas/assessmentRelationshipDetail'
+        prepopulated:
+          type: boolean
+      required:
+        - id
+        - entityId
+        - prepopulated
+    assessmentAttributeDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        value:
+          type: string
+      required:
+        - id
+        - attributeId
+        - value
+    assessmentRelationshipDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        prepopulated:
+          type: boolean
+        relationship_targets:
+          type: array
+          default: [ ]
+          items:
+            $ref: '#/components/schemas/assessmentRelationshipTargetDetail'
+    assessmentRelationshipTargetDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        target_entity_id:
+          type: string
+
