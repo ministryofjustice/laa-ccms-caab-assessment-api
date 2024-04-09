@@ -1,6 +1,8 @@
 package uk.gov.laa.ccms.caab.assessment.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -97,7 +99,37 @@ class AssessmentServiceTest {
     verify(opaSessionRepository).findById(assessmentId);
   }
 
+  @Test
+  void testUpdateAssessmentSuccess() {
+    final Long assessmentId = 1L;
+    final AssessmentDetail baseAssessmentDetail = new AssessmentDetail();
+    final OpaSession opaSession = new OpaSession();
 
+    when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(opaSession));
 
+    assessmentService.updateAssessment(assessmentId, baseAssessmentDetail);
+
+    verify(opaSessionRepository).findById(assessmentId);
+    verify(assessmentMapper).mapIntoOpaSession(opaSession, baseAssessmentDetail);
+    verify(opaSessionRepository).save(opaSession);
+  }
+
+  @Test
+  void testUpdateAssessmentNotFound() {
+    final Long assessmentId = 1L;
+    final AssessmentDetail baseAssessmentDetail = new AssessmentDetail();
+
+    when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.empty());
+
+    ApplicationException thrown = assertThrows(ApplicationException.class, () -> {
+      assessmentService.updateAssessment(assessmentId, baseAssessmentDetail);
+    });
+
+    assertEquals(HttpStatus.NOT_FOUND, thrown.getHttpStatus());
+    assertTrue(thrown.getMessage().contains("Assessment with id " + assessmentId + " not found"));
+    verify(opaSessionRepository).findById(assessmentId);
+    verify(assessmentMapper, never()).mapIntoOpaSession(any(OpaSession.class), any(AssessmentDetail.class));
+    verify(opaSessionRepository, never()).save(any(OpaSession.class));
+  }
 
 }

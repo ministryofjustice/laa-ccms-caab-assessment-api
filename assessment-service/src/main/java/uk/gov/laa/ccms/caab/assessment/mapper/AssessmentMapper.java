@@ -1,9 +1,13 @@
 package uk.gov.laa.ccms.caab.assessment.mapper;
 
 import java.util.List;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.InheritConfiguration;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaAttribute;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaEntity;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaListEntity;
@@ -13,6 +17,7 @@ import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetails;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentEntityDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentEntityTypeDetail;
+import uk.gov.laa.ccms.caab.assessment.model.BaseAssessmentDetail;
 
 /**
  * Mapper for mapping between assessment entities and models.
@@ -28,7 +33,7 @@ public interface AssessmentMapper {
   @Mapping(target = "opaListEntities", ignore = true)
   OpaSession toOpaSession(AssessmentDetail assessmentDetail);
 
-  @InheritInverseConfiguration
+  @InheritInverseConfiguration(name = "toOpaSession")
   @Mapping(target = "auditDetail", source = "auditTrail")
   @Mapping(target = "entityTypes", source = "opaListEntities")
   AssessmentDetail toAssessmentDetail(OpaSession opaSession);
@@ -45,6 +50,13 @@ public interface AssessmentMapper {
   @Mapping(target = "type", source = "attributeType")
   AssessmentAttributeDetail toAssessmentAttributeDetail(OpaAttribute opaAttribute);
 
+  @InheritConfiguration(name = "toOpaSession")
+  @Mapping(target = "opaListEntities", ignore = true)
+  @BeanMapping(nullValuePropertyMappingStrategy =  NullValuePropertyMappingStrategy.IGNORE)
+  void mapIntoOpaSession(
+      @MappingTarget OpaSession opaSession,
+      AssessmentDetail assessmentDetail);
+
   /**
    * Maps a list of {@link OpaSession} entities to an {@link AssessmentDetails} model.
    *
@@ -60,6 +72,8 @@ public interface AssessmentMapper {
     }
     return assessmentDetails;
   }
+
+
 
 
 }

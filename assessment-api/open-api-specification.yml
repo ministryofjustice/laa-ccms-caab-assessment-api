@@ -1,12 +1,12 @@
 openapi: '3.0.0'
 info:
-  title: 'laa-ccms-assessment-api'
+  title: 'laa-ccms-caab-assessment-api'
   version: '1.0.0'
 paths:
   /assessments:
     get:
       tags:
-        - 'assessment'
+        - assessments
       summary: 'get assessments'
       operationId: 'getAssessments'
       parameters:
@@ -44,7 +44,7 @@ paths:
   /assessments/{assessment-id}:
     get:
       tags:
-        - 'assessment'
+        - assessments
       summary: 'get assessment by id '
       operationId: 'getAssessment'
       parameters:
@@ -55,6 +55,41 @@ paths:
             type: 'integer'
             format: 'int64'
             example: '1234567890'
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/assessmentDetail"
+        '400':
+          description: 'Bad request'
+        '401':
+          description: 'Unauthorized'
+        '404':
+          description: 'Not found'
+        '500':
+          description: 'Internal server error'
+    patch:
+      tags:
+        - assessments
+      summary: 'update assessment'
+      operationId: 'updateAssessment'
+      requestBody:
+        description: update an assessment
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/baseAssessmentDetail'
+      parameters:
+        - name: 'assessment-id'
+          in: 'path'
+          required: true
+          schema:
+            type: 'integer'
+            format: 'int64'
+            example: '1234567890'
+        - $ref: '#/components/parameters/requiredUserLoginId'
       responses:
         '200':
           description: 'Successful operation'
@@ -89,6 +124,14 @@ components:
           - 'meritsAssessment_PREPOP'
       example: 'meansAssessment'
 
+    requiredUserLoginId:
+        name: 'Caab-User-Login-Id'
+        in: header
+        required: true
+        schema:
+          type: 'string'
+          example: 'SOMEUSER@COMPANY.CO.UK'
+
   schemas:
     assessmentDetails:
       type: 'object'
@@ -99,10 +142,24 @@ components:
           items:
             $ref: "#/components/schemas/assessmentDetail"
     assessmentDetail:
+      allOf:
+        - $ref: "#/components/schemas/baseAssessmentDetail"
+        - type: 'object'
+          properties:
+            id:
+              type: 'string'
+            entity_types:
+              type: array
+              default: [ ]
+              items:
+                $ref: '#/components/schemas/assessmentEntityTypeDetail'
+            audit_detail:
+              $ref: '#/components/schemas/auditDetail'
+    baseAssessmentDetail:
       type: 'object'
+      discriminator:
+        propertyName: baseAssessmentDetail
       properties:
-        id:
-          type: 'string'
         provider_id:
           type: 'string'
         case_reference_number:
@@ -111,13 +168,6 @@ components:
           type: 'string'
         status:
           type: 'string'
-        entity_types:
-          type: array
-          default: [ ]
-          items:
-            $ref: '#/components/schemas/assessmentEntityTypeDetail'
-        audit_detail:
-          $ref: '#/components/schemas/auditDetail'
     auditDetail:
       type: 'object'
       properties:

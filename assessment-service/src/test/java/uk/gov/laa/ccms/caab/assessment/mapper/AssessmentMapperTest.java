@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
@@ -111,7 +110,7 @@ class AssessmentMapperTest {
 
   @Test
   void testToAssessmentDetailWithNullSession() {
-    AssessmentDetail detail = assessmentMapper.toAssessmentDetail(null);
+    AssessmentDetail detail = assessmentMapper.toAssessmentDetail((OpaSession) null);
     assertNull(detail);
   }
 
@@ -323,6 +322,42 @@ class AssessmentMapperTest {
     assertNotNull(details);
     assertEquals(opaRelationships.size(), details.size());
   }
+
+  @Test
+  void mapIntoOpaSession_WithFullDetail_MapsAllFields() {
+    OpaSession opaSession = new OpaSession();
+    AssessmentDetail assessmentDetail = new AssessmentDetail()
+        .name("Assessment Name")
+        .providerId("Provider123")
+        .caseReferenceNumber("CaseRef456")
+        .id("789")
+        .status("Completed");
+
+    assessmentMapper.mapIntoOpaSession(opaSession, assessmentDetail);
+
+    assertEquals("Assessment Name", opaSession.getAssessment());
+    assertEquals("Provider123", opaSession.getOwnerId());
+    assertEquals("CaseRef456", opaSession.getTargetId());
+    assertEquals(789L, opaSession.getId());
+    assertEquals("Completed", opaSession.getStatus());
+  }
+
+  @Test
+  void mapIntoOpaSession_WithPartialDetail_MapsNonNullFields() {
+    OpaSession opaSession = new OpaSession();
+    AssessmentDetail assessmentDetail = new AssessmentDetail()
+        .name("Partial Name")
+        .caseReferenceNumber("PartialCaseRef123");
+
+    assessmentMapper.mapIntoOpaSession(opaSession, assessmentDetail);
+
+    assertEquals("Partial Name", opaSession.getAssessment());
+    assertNull(opaSession.getOwnerId());
+    assertEquals("PartialCaseRef123", opaSession.getTargetId());
+    assertNull(opaSession.getId());
+    assertNull(opaSession.getStatus());
+  }
+
 
 
 }
