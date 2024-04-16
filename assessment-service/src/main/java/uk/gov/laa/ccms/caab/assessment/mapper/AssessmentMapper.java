@@ -2,7 +2,6 @@ package uk.gov.laa.ccms.caab.assessment.mapper;
 
 import java.util.List;
 import org.mapstruct.BeanMapping;
-import org.mapstruct.InheritConfiguration;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,7 +16,7 @@ import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetails;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentEntityDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentEntityTypeDetail;
-import uk.gov.laa.ccms.caab.assessment.model.BaseAssessmentDetail;
+import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
 
 /**
  * Mapper for mapping between assessment entities and models.
@@ -50,12 +49,16 @@ public interface AssessmentMapper {
   @Mapping(target = "type", source = "attributeType")
   AssessmentAttributeDetail toAssessmentAttributeDetail(OpaAttribute opaAttribute);
 
-  @InheritConfiguration(name = "toOpaSession")
+  @Mapping(target = "assessment", source = "name")
+  @Mapping(target = "ownerId", source = "providerId")
+  @Mapping(target = "targetId", source = "caseReferenceNumber")
+  @Mapping(target = "auditTrail", ignore = true)
   @Mapping(target = "opaListEntities", ignore = true)
+  @Mapping(target = "id", ignore = true)
   @BeanMapping(nullValuePropertyMappingStrategy =  NullValuePropertyMappingStrategy.IGNORE)
   void mapIntoOpaSession(
       @MappingTarget OpaSession opaSession,
-      AssessmentDetail assessmentDetail);
+      PatchAssessmentDetail patch);
 
   /**
    * Maps a list of {@link OpaSession} entities to an {@link AssessmentDetails} model.
