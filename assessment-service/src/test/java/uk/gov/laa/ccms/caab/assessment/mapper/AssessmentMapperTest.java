@@ -30,6 +30,7 @@ import uk.gov.laa.ccms.caab.assessment.model.AssessmentEntityTypeDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentRelationshipDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentRelationshipTargetDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AuditDetail;
+import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
 
 @ExtendWith(MockitoExtension.class)
 class AssessmentMapperTest {
@@ -326,30 +327,28 @@ class AssessmentMapperTest {
   @Test
   void mapIntoOpaSession_WithFullDetail_MapsAllFields() {
     OpaSession opaSession = new OpaSession();
-    AssessmentDetail assessmentDetail = new AssessmentDetail()
+    PatchAssessmentDetail patch = new PatchAssessmentDetail()
         .name("Assessment Name")
         .providerId("Provider123")
         .caseReferenceNumber("CaseRef456")
-        .id("789")
         .status("Completed");
 
-    assessmentMapper.mapIntoOpaSession(opaSession, assessmentDetail);
+    assessmentMapper.mapIntoOpaSession(opaSession, patch);
 
     assertEquals("Assessment Name", opaSession.getAssessment());
     assertEquals("Provider123", opaSession.getOwnerId());
     assertEquals("CaseRef456", opaSession.getTargetId());
-    assertEquals(789L, opaSession.getId());
     assertEquals("Completed", opaSession.getStatus());
   }
 
   @Test
   void mapIntoOpaSession_WithPartialDetail_MapsNonNullFields() {
     OpaSession opaSession = new OpaSession();
-    AssessmentDetail assessmentDetail = new AssessmentDetail()
+    PatchAssessmentDetail patch = new PatchAssessmentDetail()
         .name("Partial Name")
         .caseReferenceNumber("PartialCaseRef123");
 
-    assessmentMapper.mapIntoOpaSession(opaSession, assessmentDetail);
+    assessmentMapper.mapIntoOpaSession(opaSession, patch);
 
     assertEquals("Partial Name", opaSession.getAssessment());
     assertNull(opaSession.getOwnerId());

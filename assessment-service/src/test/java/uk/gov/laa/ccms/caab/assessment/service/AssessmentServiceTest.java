@@ -20,6 +20,7 @@ import uk.gov.laa.ccms.caab.assessment.exception.ApplicationException;
 import uk.gov.laa.ccms.caab.assessment.mapper.AssessmentMapper;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetails;
+import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.repository.OpaSessionRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -102,33 +103,33 @@ class AssessmentServiceTest {
   @Test
   void testUpdateAssessmentSuccess() {
     final Long assessmentId = 1L;
-    final AssessmentDetail baseAssessmentDetail = new AssessmentDetail();
+    final PatchAssessmentDetail patch = new PatchAssessmentDetail();
     final OpaSession opaSession = new OpaSession();
 
     when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(opaSession));
 
-    assessmentService.updateAssessment(assessmentId, baseAssessmentDetail);
+    assessmentService.updateAssessment(assessmentId, patch);
 
     verify(opaSessionRepository).findById(assessmentId);
-    verify(assessmentMapper).mapIntoOpaSession(opaSession, baseAssessmentDetail);
+    verify(assessmentMapper).mapIntoOpaSession(opaSession, patch);
     verify(opaSessionRepository).save(opaSession);
   }
 
   @Test
   void testUpdateAssessmentNotFound() {
     final Long assessmentId = 1L;
-    final AssessmentDetail baseAssessmentDetail = new AssessmentDetail();
+    final PatchAssessmentDetail patch = new PatchAssessmentDetail();
 
     when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.empty());
 
     ApplicationException thrown = assertThrows(ApplicationException.class, () -> {
-      assessmentService.updateAssessment(assessmentId, baseAssessmentDetail);
+      assessmentService.updateAssessment(assessmentId, patch);
     });
 
     assertEquals(HttpStatus.NOT_FOUND, thrown.getHttpStatus());
     assertTrue(thrown.getMessage().contains("Assessment with id " + assessmentId + " not found"));
     verify(opaSessionRepository).findById(assessmentId);
-    verify(assessmentMapper, never()).mapIntoOpaSession(any(OpaSession.class), any(AssessmentDetail.class));
+    verify(assessmentMapper, never()).mapIntoOpaSession(any(OpaSession.class), any(PatchAssessmentDetail.class));
     verify(opaSessionRepository, never()).save(any(OpaSession.class));
   }
 

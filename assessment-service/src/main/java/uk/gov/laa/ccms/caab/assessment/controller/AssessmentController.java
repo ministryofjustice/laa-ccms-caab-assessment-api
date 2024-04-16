@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.laa.ccms.caab.assessment.api.AssessmentsApi;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetails;
-import uk.gov.laa.ccms.caab.assessment.model.BaseAssessmentDetail;
+import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.service.AssessmentService;
 
 /**
@@ -62,16 +62,16 @@ public class AssessmentController implements AssessmentsApi {
    *
    * @param assessmentId The ID of the assessment to update.
    * @param caabUserLoginId The CAAB user login ID performing the update.
-   * @param baseAssessmentDetail The details to update the assessment with.
+   * @param patch The details to update the assessment with.
    * @return ResponseEntity with the status of the update operation.
    */
   @Override
   public ResponseEntity<AssessmentDetail> updateAssessment(
       final Long assessmentId,
       final String caabUserLoginId,
-      final BaseAssessmentDetail baseAssessmentDetail) {
+      final PatchAssessmentDetail patch) {
 
-    assessmentService.updateAssessment(assessmentId, baseAssessmentDetail);
+    assessmentService.updateAssessment(assessmentId, patch);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 }

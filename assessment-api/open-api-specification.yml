@@ -80,7 +80,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/baseAssessmentDetail'
+              $ref: '#/components/schemas/patchAssessmentDetail'
       parameters:
         - name: 'assessment-id'
           in: 'path'
@@ -142,23 +142,27 @@ components:
           items:
             $ref: "#/components/schemas/assessmentDetail"
     assessmentDetail:
-      allOf:
-        - $ref: "#/components/schemas/baseAssessmentDetail"
-        - type: 'object'
-          properties:
-            id:
-              type: 'string'
-            entity_types:
-              type: array
-              default: [ ]
-              items:
-                $ref: '#/components/schemas/assessmentEntityTypeDetail'
-            audit_detail:
-              $ref: '#/components/schemas/auditDetail'
-    baseAssessmentDetail:
+        type: 'object'
+        properties:
+          id:
+            type: 'string'
+          provider_id:
+            type: 'string'
+          case_reference_number:
+            type: 'string'
+          name:
+            type: 'string'
+          status:
+            type: 'string'
+          entity_types:
+            type: array
+            default: [ ]
+            items:
+              $ref: '#/components/schemas/assessmentEntityTypeDetail'
+          audit_detail:
+            $ref: '#/components/schemas/auditDetail'
+    patchAssessmentDetail:
       type: 'object'
-      discriminator:
-        propertyName: baseAssessmentDetail
       properties:
         provider_id:
           type: 'string'
