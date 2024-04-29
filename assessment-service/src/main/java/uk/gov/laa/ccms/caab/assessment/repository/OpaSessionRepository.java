@@ -1,6 +1,7 @@
 package uk.gov.laa.ccms.caab.assessment.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaSession;
 
@@ -13,6 +14,7 @@ import uk.gov.laa.ccms.caab.assessment.entity.OpaSession;
  * Spring Data JPA.
  */
 @Repository
-public interface OpaSessionRepository extends JpaRepository<OpaSession, Long> {
+public interface OpaSessionRepository extends JpaRepository<OpaSession, Long>,
+    JpaSpecificationExecutor<OpaSession> {
 
 }

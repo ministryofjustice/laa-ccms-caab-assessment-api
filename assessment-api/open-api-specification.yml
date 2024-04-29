@@ -112,17 +112,18 @@ components:
       name: name
       in: query
       schema:
-        type: string
-        enum:
-          - 'billingAssessment'
-          - 'billingAssessment_PREPOP'
-          - 'poaAssessment'
-          - 'poaAssessment_PREPOP'
-          - 'meansAssessment'
-          - 'meansAssessment_PREPOP'
-          - 'meritsAssessment'
-          - 'meritsAssessment_PREPOP'
-      example: 'meansAssessment'
+        type: 'array'
+        items:
+          type: 'string'
+          enum:
+            - 'billingAssessment'
+            - 'billingAssessment_PREPOP'
+            - 'poaAssessment'
+            - 'poaAssessment_PREPOP'
+            - 'meansAssessment'
+            - 'meansAssessment_PREPOP'
+            - 'meritsAssessment'
+            - 'meritsAssessment_PREPOP'
 
     requiredUserLoginId:
         name: 'Caab-User-Login-Id'

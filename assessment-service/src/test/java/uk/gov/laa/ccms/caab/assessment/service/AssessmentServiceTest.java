@@ -1,11 +1,15 @@
 package uk.gov.laa.ccms.caab.assessment.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -13,7 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Example;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaSession;
 import uk.gov.laa.ccms.caab.assessment.exception.ApplicationException;
@@ -46,22 +50,23 @@ class AssessmentServiceTest {
     AssessmentDetail criteria = new AssessmentDetail()
         .providerId(providerId)
         .caseReferenceNumber(caseReferenceNumber)
-        .name(name)
         .status(status);
+
+    List<String> names = new ArrayList<>(List.of(name));
 
     OpaSession session = new OpaSession();
 
     when(assessmentMapper.toOpaSession(criteria))
         .thenReturn(session);
-    when(opaSessionRepository.findAll(Example.of(session)))
+    when(opaSessionRepository.findAll(any(Specification.class)))
         .thenReturn(List.of(session));
     when(assessmentMapper.toAssessmentDetails(List.of(session)))
         .thenReturn(new AssessmentDetails());
 
-    assessmentService.getAssessments(criteria);
+    assessmentService.getAssessments(criteria, names);
 
     verify(assessmentMapper).toOpaSession(criteria);
-    verify(opaSessionRepository).findAll(Example.of(session));
+    verify(opaSessionRepository).findAll(any(Specification.class));
     verify(assessmentMapper).toAssessmentDetails(List.of(session));
   }
 
