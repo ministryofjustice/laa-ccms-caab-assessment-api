@@ -1,5 +1,6 @@
 package uk.gov.laa.ccms.caab.assessment.controller;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,18 +44,18 @@ public class AssessmentController implements AssessmentsApi {
    */
   @Override
   public ResponseEntity<AssessmentDetails> getAssessments(
-      final String name,
+      final List<String> name,
       final String providerId,
       final String caseReferenceNumber,
       final String status) {
 
+
     AssessmentDetail criteria = new AssessmentDetail()
         .providerId(providerId)
         .caseReferenceNumber(caseReferenceNumber)
-        .name(name)
         .status(status);
 
-    return ResponseEntity.ok(assessmentService.getAssessments(criteria));
+    return ResponseEntity.ok(assessmentService.getAssessments(criteria, name));
   }
 
   /**

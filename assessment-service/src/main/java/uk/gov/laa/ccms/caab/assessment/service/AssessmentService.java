@@ -1,9 +1,14 @@
 package uk.gov.laa.ccms.caab.assessment.service;
 
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Example;
+import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaSession;
@@ -31,9 +36,13 @@ public class AssessmentService {
    * @param criteria the criteria to filter the assessments
    * @return the list of assessments
    */
-  public AssessmentDetails getAssessments(AssessmentDetail criteria) {
+  public AssessmentDetails getAssessments(
+      final AssessmentDetail criteria,
+      final List<String> names) {
     OpaSession example = assessmentMapper.toOpaSession(criteria);
-    List<OpaSession> opaSessions = opaSessionRepository.findAll(Example.of(example));
+
+    List<OpaSession> opaSessions =
+        opaSessionRepository.findAll(buildQuerySpecification(Example.of(example), names));
 
     return assessmentMapper.toAssessmentDetails(opaSessions);
   }
@@ -74,6 +83,32 @@ public class AssessmentService {
     opaSessionRepository.save(opaSession);
   }
 
+  /**
+   * Constructs a query specification based on a provided example and a list of names.
+   *
+   * @param assessment the example of OpaSession to filter query results.
+   * @param names a list of names to include in the query; may be null or empty.
+   * @return the Specification object that constructs the predicate for querying.
+   */
+  private Specification<OpaSession> buildQuerySpecification(
+      final Example<OpaSession> assessment,
+      final List<String> names) {
+    return (root, query, builder) -> {
+      List<Predicate> predicates = new ArrayList<>();
 
+      if (names != null && !names.isEmpty()) {
+        predicates.add(root.get("assessment").in(names));
+      }
+
+      Predicate examplePredicate = QueryByExamplePredicateBuilder
+          .getPredicate(root, builder, assessment);
+
+      if (examplePredicate != null) {
+        predicates.add(examplePredicate);
+      }
+
+      return builder.and(predicates.toArray(new Predicate[0]));
+    };
+  }
 
 }

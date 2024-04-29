@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -71,11 +73,12 @@ class AssessmentControllerTest {
     AssessmentDetail criteria = new AssessmentDetail()
         .providerId(providerId)
         .caseReferenceNumber(caseReferenceNumber)
-        .name(name)
         .status(status);
 
+    List<String> names = new ArrayList<>(List.of(name));
+
     AssessmentDetail assessment = new AssessmentDetail();
-    when(assessmentService.getAssessments(criteria))
+    when(assessmentService.getAssessments(criteria, names))
         .thenReturn(new AssessmentDetails().addContentItem(assessment));
 
     this.mockMvc.perform(get("/assessments")
@@ -85,7 +88,7 @@ class AssessmentControllerTest {
         .param("status", status))
         .andExpect(status().isOk());
 
-    verify(assessmentService).getAssessments(criteria);
+    verify(assessmentService).getAssessments(criteria, names);
   }
 
 }
