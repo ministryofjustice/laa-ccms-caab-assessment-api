@@ -49,13 +49,41 @@ public class AssessmentController implements AssessmentsApi {
       final String caseReferenceNumber,
       final String status) {
 
-
     AssessmentDetail criteria = new AssessmentDetail()
         .providerId(providerId)
         .caseReferenceNumber(caseReferenceNumber)
         .status(status);
 
     return ResponseEntity.ok(assessmentService.getAssessments(criteria, name));
+  }
+
+  /**
+   * Deletes assessments based on given criteria and a list of names.
+   *
+   * @param caabUserLoginId the login ID of the CAAB user initiating the request.
+   * @param providerId the identifier of the provider.
+   * @param caseReferenceNumber the reference number of the case.
+   * @param name the list of names associated with the assessments.
+   * @param status the status of the assessments to be deleted.
+   * @return ResponseEntity representing an HTTP 204 No Content status.
+   *
+   */
+  @Override
+  public ResponseEntity<Void> deleteAssessments(
+      final String caabUserLoginId,
+      final String providerId,
+      final String caseReferenceNumber,
+      final List<String> name,
+      final String status) {
+
+    AssessmentDetail criteria = new AssessmentDetail()
+        .providerId(providerId)
+        .caseReferenceNumber(caseReferenceNumber)
+        .status(status);
+
+    assessmentService.deleteAssessments(criteria, name);
+
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   /**
@@ -67,7 +95,7 @@ public class AssessmentController implements AssessmentsApi {
    * @return ResponseEntity with the status of the update operation.
    */
   @Override
-  public ResponseEntity<AssessmentDetail> updateAssessment(
+  public ResponseEntity<Void> updateAssessment(
       final Long assessmentId,
       final String caabUserLoginId,
       final PatchAssessmentDetail patch) {

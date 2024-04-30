@@ -63,6 +63,22 @@ public class AssessmentService {
   }
 
   /**
+   * Deletes assessments from the repository based on specified criteria and a list of names.
+   *
+   * @param criteria the details of the assessment to use as deletion criteria.
+   * @param names a list of assessment types to further filter the assessments to be deleted.
+   */
+  public void deleteAssessments(
+      final AssessmentDetail criteria,
+      final List<String> names) {
+
+    OpaSession example = assessmentMapper.toOpaSession(criteria);
+
+    opaSessionRepository.deleteAll(
+        opaSessionRepository.findAll(buildQuerySpecification(Example.of(example), names)));
+  }
+
+  /**
    * Updates an assessment's details in the database.
    *
    * @param assessmentId The ID of the assessment to update.
