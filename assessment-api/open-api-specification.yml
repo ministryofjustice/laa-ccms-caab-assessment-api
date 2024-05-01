@@ -41,6 +41,42 @@ paths:
           description: 'Not found'
         '500':
           description: 'Internal server error'
+    delete:
+      tags:
+        - assessments
+      summary: 'delete assessments'
+      operationId: 'deleteAssessments'
+      parameters:
+        - $ref: '#/components/parameters/requiredUserLoginId'
+        - $ref: '#/components/parameters/assessmentType'
+        - name: 'provider-id'
+          required: true
+          in: 'query'
+          schema:
+            type: 'string'
+            example: '1234567890'
+        - name: 'case-reference-number'
+          required: true
+          in: 'query'
+          schema:
+            type: 'string'
+            example: '1234567890'
+        - name: 'status'
+          in: 'query'
+          schema:
+            type: 'string'
+            example: 'INCOMPLETE'
+      responses:
+        '204':
+          description: 'Successful deletion'
+        '400':
+          description: 'Bad request'
+        '401':
+          description: 'Unauthorized'
+        '404':
+          description: 'Not found'
+        '500':
+          description: 'Internal server error'
   /assessments/{assessment-id}:
     get:
       tags:
@@ -91,12 +127,8 @@ paths:
             example: '1234567890'
         - $ref: '#/components/parameters/requiredUserLoginId'
       responses:
-        '200':
+        '204':
           description: 'Successful operation'
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/assessmentDetail"
         '400':
           description: 'Bad request'
         '401':

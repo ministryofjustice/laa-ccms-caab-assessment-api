@@ -2,6 +2,7 @@ package uk.gov.laa.ccms.caab.assessment.controller;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -89,6 +90,52 @@ class AssessmentControllerTest {
         .andExpect(status().isOk());
 
     verify(assessmentService).getAssessments(criteria, names);
+  }
+
+  @Test
+  public void deleteAssessments() throws Exception {
+    String providerId = "providerId";
+    String caseReferenceNumber = "caseReferenceNumber";
+    String status = "status";
+    List<String> names = new ArrayList<>(List.of("name"));
+
+    AssessmentDetail criteria = new AssessmentDetail()
+        .providerId(providerId)
+        .caseReferenceNumber(caseReferenceNumber)
+        .status(status);
+
+    this.mockMvc.perform(delete("/assessments")
+            .header("caab-User-Login-Id", "TestUser")
+            .param("provider-id", providerId)
+            .param("case-reference-number", caseReferenceNumber)
+            .param("name", String.join(",", names))
+            .param("status", status))
+        .andExpect(status().isNoContent());
+
+    verify(assessmentService).deleteAssessments(criteria, names);
+  }
+
+  @Test
+  public void deleteAssessments_returnsNoContentWhenNoMatchingAssessments() throws Exception {
+    String providerId = "nonExistentProviderId";
+    String caseReferenceNumber = "nonExistentCaseReferenceNumber";
+    String status = "nonExistentStatus";
+    List<String> names = new ArrayList<>(List.of("nonExistentName"));
+
+    AssessmentDetail criteria = new AssessmentDetail()
+        .providerId(providerId)
+        .caseReferenceNumber(caseReferenceNumber)
+        .status(status);
+
+    this.mockMvc.perform(delete("/assessments")
+            .header("Caab-User-Login-Id", "TestUser")
+            .param("provider-id", providerId)
+            .param("case-reference-number", caseReferenceNumber)
+            .param("name", String.join(",", names))
+            .param("status", status))
+        .andExpect(status().isNoContent());
+
+    verify(assessmentService).deleteAssessments(criteria, names);
   }
 
 }
