@@ -2,6 +2,7 @@ package uk.gov.laa.ccms.caab.assessment.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -19,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import uk.gov.laa.ccms.caab.assessment.entity.OpaCheckpoint;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaSession;
 import uk.gov.laa.ccms.caab.assessment.exception.ApplicationException;
 import uk.gov.laa.ccms.caab.assessment.mapper.AssessmentMapper;
@@ -27,6 +29,7 @@ import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetails;
 import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.repository.OpaSessionRepository;
 
+@SuppressWarnings({"unchecked"})
 @ExtendWith(MockitoExtension.class)
 class AssessmentServiceTest {
 
@@ -136,6 +139,73 @@ class AssessmentServiceTest {
     verify(opaSessionRepository).findById(assessmentId);
     verify(assessmentMapper, never()).mapIntoOpaSession(any(OpaSession.class), any(PatchAssessmentDetail.class));
     verify(opaSessionRepository, never()).save(any(OpaSession.class));
+  }
+
+  @Test
+  void deleteAssessments_deletesAssessmentsMatchingCriteriaAndNames() {
+    AssessmentDetail criteria = new AssessmentDetail()
+        .providerId("providerId")
+        .caseReferenceNumber("caseReferenceNumber")
+        .status("status");
+    List<String> names = List.of("name1", "name2");
+
+    OpaSession session = new OpaSession();
+    when(assessmentMapper.toOpaSession(criteria)).thenReturn(session);
+    when(opaSessionRepository.findAll(any(Specification.class))).thenReturn(List.of(session));
+
+    assessmentService.deleteAssessments(criteria, names);
+
+    verify(assessmentMapper).toOpaSession(criteria);
+    verify(opaSessionRepository).findAll(any(Specification.class));
+    verify(opaSessionRepository).deleteAll(List.of(session));
+  }
+
+  @Test
+  void deleteAssessments_doesNothingWhenNoMatchingAssessments() {
+    AssessmentDetail criteria = new AssessmentDetail()
+        .providerId("nonExistentProviderId")
+        .caseReferenceNumber("nonExistentCaseReferenceNumber")
+        .status("nonExistentStatus");
+    List<String> names = List.of("nonExistentName");
+
+    OpaSession session = new OpaSession();
+    when(assessmentMapper.toOpaSession(criteria)).thenReturn(session);
+    when(opaSessionRepository.findAll(any(Specification.class))).thenReturn(List.of());
+
+    assessmentService.deleteAssessments(criteria, names);
+
+    verify(assessmentMapper).toOpaSession(criteria);
+    verify(opaSessionRepository).findAll(any(Specification.class));
+  }
+
+  @Test
+  void deleteCheckpoint_deletesCheckpointWhenExists() {
+    Long assessmentId = 1L;
+    OpaSession session = new OpaSession();
+    session.setCheckpoint(new OpaCheckpoint());
+
+    when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(session));
+
+    assessmentService.deleteCheckpoint(assessmentId);
+
+    verify(opaSessionRepository).findById(assessmentId);
+    verify(opaSessionRepository).save(session);
+    assertNull(session.getCheckpoint());
+  }
+
+  @Test
+  void deleteCheckpoint_throwsExceptionWhenCheckpointDoesNotExist() {
+    Long assessmentId = 1L;
+
+    when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.empty());
+
+    ApplicationException thrown = assertThrows(ApplicationException.class, () -> {
+      assessmentService.deleteCheckpoint(assessmentId);
+    });
+
+    assertEquals(HttpStatus.NOT_FOUND, thrown.getHttpStatus());
+    assertTrue(thrown.getMessage().contains("Assessment checkpoint with id: " + assessmentId + " not found"));
+    verify(opaSessionRepository).findById(assessmentId);
   }
 
 }

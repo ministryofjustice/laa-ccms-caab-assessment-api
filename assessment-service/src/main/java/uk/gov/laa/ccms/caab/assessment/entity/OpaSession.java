@@ -8,6 +8,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.List;
@@ -76,11 +77,13 @@ public class OpaSession {
   )
   private List<OpaListEntity> opaListEntities;
 
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "opaSession")
+  private OpaCheckpoint checkpoint;
+
   /**
    * audit trail info.
    */
   @Embedded
   private AuditTrail auditTrail = new AuditTrail();
-
 
 }

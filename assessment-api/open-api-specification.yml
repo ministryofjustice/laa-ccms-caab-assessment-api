@@ -137,6 +137,32 @@ paths:
           description: 'Not found'
         '500':
           description: 'Internal server error'
+  /assessments/{assessment-id}/checkpoint:
+    delete:
+      tags:
+        - assessments
+      summary: 'delete checkpoint from assessment'
+      operationId: 'deleteAssessmentCheckpoint'
+      parameters:
+        - name: 'assessment-id'
+          in: 'path'
+          required: true
+          schema:
+            type: 'integer'
+            format: 'int64'
+            example: '1234567890'
+        - $ref: '#/components/parameters/requiredUserLoginId'
+      responses:
+        '204':
+          description: 'Successful deletion'
+        '400':
+          description: 'Bad request'
+        '401':
+          description: 'Unauthorized'
+        '404':
+          description: 'Not found'
+        '500':
+          description: 'Internal server error'
 
 components:
   parameters:
@@ -192,6 +218,8 @@ components:
             default: [ ]
             items:
               $ref: '#/components/schemas/assessmentEntityTypeDetail'
+          checkpoint:
+            $ref: '#/components/schemas/assessmentCheckpointDetail'
           audit_detail:
             $ref: '#/components/schemas/auditDetail'
     patchAssessmentDetail:
@@ -217,6 +245,13 @@ components:
           type: 'string'
           format: 'date'
         last_saved_by:
+          type: 'string'
+    assessmentCheckpointDetail:
+      type: 'object'
+      properties:
+        username:
+          type: 'string'
+        interviewData:
           type: 'string'
     assessmentEntityTypeDetail:
       type: object

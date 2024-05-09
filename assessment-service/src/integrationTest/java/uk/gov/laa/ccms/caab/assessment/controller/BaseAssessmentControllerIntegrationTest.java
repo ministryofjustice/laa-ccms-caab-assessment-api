@@ -2,6 +2,8 @@ package uk.gov.laa.ccms.caab.assessment.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -32,6 +34,8 @@ public abstract class BaseAssessmentControllerIntegrationTest {
     final Long id  = 26L;
     ResponseEntity<AssessmentDetail> response = assessmentController.getAssessment(id);
     assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertNotNull(response.getBody().getCheckpoint());
   }
 
   private static Stream<Arguments> getAssessmentsArguments() {
@@ -151,6 +155,19 @@ public abstract class BaseAssessmentControllerIntegrationTest {
     assertEquals(beforeProviderId, afterProviderId);
     assertEquals(beforeEntityTypes, afterEntityTypes);
   }
+  @Test
+  @Sql(scripts = "/sql/assessments_insert.sql")
+  public void testDeleteCheckpoint_returns204() {
+    final Long id = 26L;
+    ResponseEntity<Void> response = assessmentController.deleteAssessmentCheckpoint(id, "testUser");
+    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+    ResponseEntity<AssessmentDetail> assessmentResponse = assessmentController.getAssessment(id);
+    assertNotNull(assessmentResponse.getBody());
+    assertNull(assessmentResponse.getBody().getCheckpoint());
+  }
+
+
 
 
 
