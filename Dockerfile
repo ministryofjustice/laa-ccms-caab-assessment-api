@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17
+FROM eclipse-temurin:21
 
 # Use a build argument for version
 ARG app_version=0.0.1-SNAPSHOT
