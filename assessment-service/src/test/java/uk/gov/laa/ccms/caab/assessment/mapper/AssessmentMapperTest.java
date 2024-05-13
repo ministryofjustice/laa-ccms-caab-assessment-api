@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,12 +19,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaAttribute;
+import uk.gov.laa.ccms.caab.assessment.entity.OpaCheckpoint;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaEntity;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaListEntity;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaRelationship;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaRelationshipTarget;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaSession;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentAttributeDetail;
+import uk.gov.laa.ccms.caab.assessment.model.AssessmentCheckpointDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetails;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentEntityDetail;
@@ -355,6 +359,25 @@ class AssessmentMapperTest {
     assertEquals("PartialCaseRef123", opaSession.getTargetId());
     assertNull(opaSession.getId());
     assertNull(opaSession.getStatus());
+  }
+
+  @Test
+  void opaCheckpointToAssessmentCheckpointDetail_returnsNull_whenOpaCheckpointIsNull() {
+    AssessmentCheckpointDetail result = assessmentMapper.opaCheckpointToAssessmentCheckpointDetail(null);
+    assertNull(result);
+  }
+
+  @Test
+  void opaCheckpointToAssessmentCheckpointDetail_returnsAssessmentCheckpointDetail_whenOpaCheckpointIsNotNull() {
+    OpaCheckpoint opaCheckpoint = mock(OpaCheckpoint.class);
+    when(opaCheckpoint.getUsername()).thenReturn("testUser");
+    when(opaCheckpoint.getInterviewData()).thenReturn(new byte[0]);
+
+    AssessmentCheckpointDetail result = assessmentMapper.opaCheckpointToAssessmentCheckpointDetail(opaCheckpoint);
+
+    assertNotNull(result);
+    assertEquals("testUser", result.getUsername());
+    assertEquals("", result.getInterviewData());
   }
 
 

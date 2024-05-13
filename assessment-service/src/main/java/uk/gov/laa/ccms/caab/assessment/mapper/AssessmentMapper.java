@@ -30,11 +30,13 @@ public interface AssessmentMapper {
   @Mapping(target = "targetId", source = "caseReferenceNumber")
   @Mapping(target = "auditTrail", ignore = true)
   @Mapping(target = "opaListEntities", ignore = true)
+  @Mapping(target = "checkpoint", ignore = true)
   OpaSession toOpaSession(AssessmentDetail assessmentDetail);
 
   @InheritInverseConfiguration(name = "toOpaSession")
   @Mapping(target = "auditDetail", source = "auditTrail")
   @Mapping(target = "entityTypes", source = "opaListEntities")
+  @Mapping(target = "checkpoint", source = "checkpoint")
   AssessmentDetail toAssessmentDetail(OpaSession opaSession);
 
   @Mapping(target = "entities", source = "opaEntities")
@@ -55,6 +57,7 @@ public interface AssessmentMapper {
   @Mapping(target = "auditTrail", ignore = true)
   @Mapping(target = "opaListEntities", ignore = true)
   @Mapping(target = "id", ignore = true)
+  @Mapping(target = "checkpoint", ignore = true)
   @BeanMapping(nullValuePropertyMappingStrategy =  NullValuePropertyMappingStrategy.IGNORE)
   void mapIntoOpaSession(
       @MappingTarget OpaSession opaSession,

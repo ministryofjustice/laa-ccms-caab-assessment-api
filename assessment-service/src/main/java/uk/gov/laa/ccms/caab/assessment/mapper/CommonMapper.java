@@ -1,5 +1,6 @@
 package uk.gov.laa.ccms.caab.assessment.mapper;
 
+import java.util.Base64;
 import org.mapstruct.Mapper;
 
 /**
@@ -16,6 +17,15 @@ public interface CommonMapper {
    */
   default Boolean toBoolean(Boolean flag) {
     return flag != null ? flag : Boolean.FALSE;
+  }
+
+
+  default String toBase64String(byte[] bytes) {
+    return bytes != null ? Base64.getEncoder().encodeToString(bytes) : null;
+  }
+
+  default byte[] toByteArrayFromBase64EncodedString(String base64EncodedString) {
+    return Base64.getDecoder().decode(base64EncodedString);
   }
 }
 

@@ -1,6 +1,5 @@
 package uk.gov.laa.ccms.caab.assessment.service;
 
-import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
@@ -79,6 +78,32 @@ public class AssessmentService {
   }
 
   /**
+   * Deletes a checkpoint from an assessment.
+   *
+   * @param assessmentId the ID of the assessment to delete the checkpoint from
+   * @throws ApplicationException if the checkpoint with the specified ID
+   *         does not exist.
+   */
+  public void deleteCheckpoint(
+      final Long assessmentId) {
+
+    opaSessionRepository.findById(assessmentId)
+        .ifPresentOrElse(
+            assessment -> {
+              assessment.getCheckpoint().setOpaSession(null);
+              assessment.setCheckpoint(null);
+              opaSessionRepository.save(assessment);
+            }, () -> {
+              throw new ApplicationException(
+                  String.format("Assessment checkpoint with id: %s not found", assessmentId),
+                  HttpStatus.NOT_FOUND);
+            }
+        );
+  }
+
+
+
+  /**
    * Updates an assessment's details in the database.
    *
    * @param assessmentId The ID of the assessment to update.
@@ -106,7 +131,7 @@ public class AssessmentService {
    * @param names a list of names to include in the query; may be null or empty.
    * @return the Specification object that constructs the predicate for querying.
    */
-  private Specification<OpaSession> buildQuerySpecification(
+  protected Specification<OpaSession> buildQuerySpecification(
       final Example<OpaSession> assessment,
       final List<String> names) {
     return (root, query, builder) -> {

@@ -4,9 +4,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,7 @@ import uk.gov.laa.ccms.caab.assessment.advice.GlobalExceptionHandler;
 import uk.gov.laa.ccms.caab.assessment.exception.ApplicationException;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetails;
+import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.service.AssessmentService;
 
 @WebMvcTest(AssessmentController.class)
@@ -136,6 +139,17 @@ class AssessmentControllerTest {
         .andExpect(status().isNoContent());
 
     verify(assessmentService).deleteAssessments(criteria, names);
+  }
+
+  @Test
+  public void deleteAssessmentCheckpoint_returnsNoContent_whenCheckpointExists() throws Exception {
+    Long assessmentId = 1L;
+
+    this.mockMvc.perform(delete("/assessments/{assessment-id}/checkpoint", assessmentId)
+            .header("caab-User-Login-Id", "TestUser"))
+        .andExpect(status().isNoContent());
+
+    verify(assessmentService).deleteCheckpoint(assessmentId);
   }
 
 }
