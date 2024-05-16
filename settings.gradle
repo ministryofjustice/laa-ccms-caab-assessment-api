@@ -1,3 +1,15 @@
+pluginManagement {
+    repositories {
+        maven {
+            name = "gitHubPackages"
+            url uri('https://maven.pkg.github.com/ministryofjustice/laa-ccms-spring-boot-common')
+            credentials(PasswordCredentials)
+        }
+        maven { url "https://plugins.gradle.org/m2/" }
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'laa-ccms-caab-assessment-api'
 
 include 'assessment-api'
