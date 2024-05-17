@@ -1,5 +1,6 @@
 package uk.gov.laa.ccms.caab.assessment.mapper;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -46,6 +47,45 @@ class AssessmentMapperTest {
   private CommonMapper commonMapper;
 
   @Test
+  void afterToOpaSessionShouldSetCorrectReferences() {
+    AssessmentDetail assessmentDetail = new AssessmentDetail();
+    OpaSession opaSession = new OpaSession();
+    opaSession.setId(1L);
+    opaSession.setCheckpoint(new OpaCheckpoint());
+
+    OpaListEntity opaListEntity = new OpaListEntity();
+    OpaEntity opaEntity = new OpaEntity();
+    OpaRelationship opaRelationship = new OpaRelationship();
+    OpaAttribute opaAttribute = new OpaAttribute();
+
+    opaEntity.setRelations(List.of(opaRelationship));
+    opaEntity.setOpaAttributes(List.of(opaAttribute));
+    opaListEntity.setOpaEntities(List.of(opaEntity));
+    opaSession.setOpaListEntities(List.of(opaListEntity));
+
+    assessmentMapper.afterToOpaSession(opaSession, assessmentDetail);
+
+    assertEquals(opaSession.getId(), opaSession.getCheckpoint().getId());
+    assertEquals(opaSession, opaSession.getCheckpoint().getOpaSession());
+    assertEquals(opaSession, opaListEntity.getOpaSession());
+    assertEquals(opaListEntity, opaEntity.getOpaListEntity());
+    assertEquals(opaSession, opaEntity.getOpaSession());
+    assertEquals(opaEntity, opaRelationship.getOpaEntity());
+    assertEquals(opaEntity, opaAttribute.getOpaEntity());
+  }
+
+  @Test
+  void afterToOpaSessionShouldHandleNullValues() {
+    AssessmentDetail assessmentDetail = new AssessmentDetail();
+    OpaSession opaSession = new OpaSession();
+
+    assessmentMapper.afterToOpaSession(opaSession, assessmentDetail);
+
+    assertNull(opaSession.getCheckpoint());
+    assertNull(opaSession.getOpaListEntities());
+  }
+
+  @Test
   void testToAssessmentDetailsWithNonNullSessions() {
     List<OpaSession> sessions = new ArrayList<>();
     OpaSession sessionOne = new OpaSession();
@@ -76,7 +116,7 @@ class AssessmentMapperTest {
         .caseReferenceNumber("caseRefNumber")
         .name("name")
         .status("status")
-        .id("1");
+        .id(1L);
 
     OpaSession session = assessmentMapper.toOpaSession(detail);
 
@@ -109,7 +149,7 @@ class AssessmentMapperTest {
     assertEquals("assessmentName", detail.getName());
     assertEquals("ownerId", detail.getProviderId());
     assertEquals("targetId", detail.getCaseReferenceNumber());
-    assertEquals("1", detail.getId());
+    assertEquals(1L, detail.getId());
     assertEquals("status", detail.getStatus());
   }
 
@@ -130,7 +170,7 @@ class AssessmentMapperTest {
 
     assertNotNull(detail);
     assertEquals("entityType", detail.getName());
-    assertEquals("1", detail.getId());
+    assertEquals(1L, detail.getId());
   }
 
   @Test
@@ -151,7 +191,7 @@ class AssessmentMapperTest {
 
     assertNotNull(detail);
     assertEquals("entityId", detail.getName());
-    assertEquals("1", detail.getId());
+    assertEquals(1L, detail.getId());
     assertTrue(detail.getPrepopulated());
   }
 
@@ -176,7 +216,7 @@ class AssessmentMapperTest {
     assertNotNull(detail);
     assertEquals("attributeId", detail.getName());
     assertEquals("attributeType", detail.getType());
-    assertEquals("1", detail.getId());
+    assertEquals(1L, detail.getId());
     assertEquals("value", detail.getValue());
   }
 
@@ -276,7 +316,7 @@ class AssessmentMapperTest {
     AssessmentRelationshipTargetDetail detail = assessmentMapper.opaRelationshipTargetToAssessmentRelationshipTargetDetail(opaRelationshipTarget);
 
     assertNotNull(detail);
-    assertEquals("1", detail.getId());
+    assertEquals(1L, detail.getId());
     assertEquals("targetEntityId", detail.getTargetEntityId());
   }
 
@@ -296,7 +336,7 @@ class AssessmentMapperTest {
     AssessmentRelationshipDetail detail = assessmentMapper.opaRelationshipToAssessmentRelationshipDetail(opaRelationship);
 
     assertNotNull(detail);
-    assertEquals("1", detail.getId());
+    assertEquals(1L, detail.getId());
     assertEquals("relationshipName", detail.getName());
     assertTrue(detail.getPrepopulated());
     assertEquals(2, detail.getRelationshipTargets().size());
@@ -379,6 +419,191 @@ class AssessmentMapperTest {
     assertEquals("testUser", result.getUsername());
     assertEquals("", result.getInterviewData());
   }
+
+  @Test
+  void testToOpaListEntity() {
+    AssessmentEntityTypeDetail detail = new AssessmentEntityTypeDetail();
+    detail.setName("entityType");
+    detail.setId(1L);
+
+    OpaListEntity entity = assessmentMapper.toOpaListEntity(detail);
+
+    assertNotNull(entity);
+    assertEquals("entityType", entity.getEntityType());
+    assertEquals(1L, entity.getId());
+  }
+
+  @Test
+  void testToOpaListEntityWithNullInput() {
+    OpaListEntity entity = assessmentMapper.toOpaListEntity(null);
+    assertNull(entity);
+  }
+
+  @Test
+  void testToOpaEntity() {
+    AssessmentEntityDetail detail = new AssessmentEntityDetail();
+    detail.setName("entityName");
+    detail.setId(1L);
+    detail.setPrepopulated(true);
+
+    OpaEntity entity = assessmentMapper.toOpaEntity(detail);
+
+    assertNotNull(entity);
+    assertEquals("entityName", entity.getEntityId());
+    assertEquals(1L, entity.getId());
+    assertTrue(entity.getPrepopulated());
+  }
+
+  @Test
+  void testToOpaEntityWithNullInput() {
+    OpaEntity entity = assessmentMapper.toOpaEntity(null);
+    assertNull(entity);
+  }
+
+  @Test
+  void testToOpaRelationship() {
+    AssessmentRelationshipDetail detail = new AssessmentRelationshipDetail();
+    detail.setName("relationshipName");
+    detail.setId(1L);
+    detail.setPrepopulated(true);
+
+    OpaRelationship relationship = assessmentMapper.toOpaRelationship(detail);
+
+    assertNotNull(relationship);
+    assertEquals("relationshipName", relationship.getName());
+    assertEquals(1L, relationship.getId());
+    assertTrue(relationship.getPrepopulated());
+  }
+
+  @Test
+  void testToOpaRelationshipWithNullInput() {
+    OpaRelationship relationship = assessmentMapper.toOpaRelationship(null);
+    assertNull(relationship);
+  }
+
+  @Test
+  void testToOpaAttribute() {
+    AssessmentAttributeDetail detail = new AssessmentAttributeDetail();
+    detail.setName("attributeName");
+    detail.setType("attributeType");
+    detail.setId(1L);
+    detail.setValue("attributeValue");
+    detail.setPrepopulated(true);
+    detail.setAsked(true);
+
+    OpaAttribute attribute = assessmentMapper.toOpaAttribute(detail);
+
+    assertNotNull(attribute);
+    assertEquals("attributeName", attribute.getAttributeId());
+    assertEquals("attributeType", attribute.getAttributeType());
+    assertEquals(1L, attribute.getId());
+    assertEquals("attributeValue", attribute.getValue());
+    assertTrue(attribute.getPrepopulated());
+    assertTrue(attribute.getAsked());
+  }
+
+  @Test
+  void testToOpaAttributeWithNullInput() {
+    OpaAttribute attribute = assessmentMapper.toOpaAttribute(null);
+    assertNull(attribute);
+  }
+
+  @Test
+  void testAssessmentAttributeDetailListToOpaAttributeList() {
+    AssessmentAttributeDetail detail1 = new AssessmentAttributeDetail();
+    detail1.setName("attribute1");
+    detail1.setType("type1");
+    detail1.setId(1L);
+    detail1.setValue("value1");
+    detail1.setPrepopulated(true);
+    detail1.setAsked(true);
+
+    AssessmentAttributeDetail detail2 = new AssessmentAttributeDetail();
+    detail2.setName("attribute2");
+    detail2.setType("type2");
+    detail2.setId(2L);
+    detail2.setValue("value2");
+    detail2.setPrepopulated(false);
+    detail2.setAsked(false);
+
+    List<AssessmentAttributeDetail> list = Arrays.asList(detail1, detail2);
+
+    List<OpaAttribute> result = assessmentMapper.assessmentAttributeDetailListToOpaAttributeList(list);
+
+    assertNotNull(result);
+    assertEquals(2, result.size());
+    assertEquals("attribute1", result.get(0).getAttributeId());
+    assertEquals("type1", result.get(0).getAttributeType());
+    assertEquals(1L, result.get(0).getId());
+    assertEquals("value1", result.get(0).getValue());
+    assertTrue(result.get(0).getPrepopulated());
+    assertTrue(result.get(0).getAsked());
+    assertEquals("attribute2", result.get(1).getAttributeId());
+    assertEquals("type2", result.get(1).getAttributeType());
+    assertEquals(2L, result.get(1).getId());
+    assertEquals("value2", result.get(1).getValue());
+    assertFalse(result.get(1).getPrepopulated());
+    assertFalse(result.get(1).getAsked());
+  }
+
+  @Test
+  void shouldReturnNullWhenAssessmentAttributeDetailListIsNull() {
+    List<OpaAttribute> result = assessmentMapper.assessmentAttributeDetailListToOpaAttributeList(null);
+    assertNull(result);
+  }
+
+  @Test
+  void testAssessmentRelationshipDetailListToOpaRelationshipList() {
+    AssessmentRelationshipDetail detail1 = new AssessmentRelationshipDetail();
+    detail1.setName("relationship1");
+    detail1.setId(1L);
+    detail1.setPrepopulated(true);
+
+    AssessmentRelationshipDetail detail2 = new AssessmentRelationshipDetail();
+    detail2.setName("relationship2");
+    detail2.setId(2L);
+    detail2.setPrepopulated(false);
+
+    List<AssessmentRelationshipDetail> list = Arrays.asList(detail1, detail2);
+
+    List<OpaRelationship> result = assessmentMapper.assessmentRelationshipDetailListToOpaRelationshipList(list);
+
+    assertNotNull(result);
+    assertEquals(2, result.size());
+    assertEquals("relationship1", result.get(0).getName());
+    assertEquals(1L, result.get(0).getId());
+    assertTrue(result.get(0).getPrepopulated());
+    assertEquals("relationship2", result.get(1).getName());
+    assertEquals(2L, result.get(1).getId());
+    assertFalse(result.get(1).getPrepopulated());
+  }
+
+  @Test
+  void shouldReturnNullWhenAssessmentRelationshipDetailListIsNull() {
+    List<OpaRelationship> result = assessmentMapper.assessmentRelationshipDetailListToOpaRelationshipList(null);
+    assertNull(result);
+  }
+
+  @Test
+  void testAssessmentRelationshipTargetDetailToOpaRelationshipTarget() {
+    AssessmentRelationshipTargetDetail detail = new AssessmentRelationshipTargetDetail();
+    detail.setId(1L);
+    detail.setTargetEntityId("entity1");
+
+    OpaRelationshipTarget result = assessmentMapper.assessmentRelationshipTargetDetailToOpaRelationshipTarget(detail);
+
+    assertNotNull(result);
+    assertEquals(1L, result.getId());
+    assertEquals("entity1", result.getTargetEntityId());
+  }
+
+  @Test
+  void shouldReturnNullWhenAssessmentRelationshipTargetDetailIsNull() {
+    OpaRelationshipTarget result = assessmentMapper.assessmentRelationshipTargetDetailToOpaRelationshipTarget(null);
+    assertNull(result);
+  }
+
+
 
 
 

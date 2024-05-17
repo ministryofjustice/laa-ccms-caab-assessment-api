@@ -4,6 +4,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -13,17 +14,20 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.List;
 import lombok.Data;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * Represents an Oracle Intelligence Advisor session.
  */
 @Entity
 @Table(name = "XXCCMS_OPA_SESSION")
+
 @SequenceGenerator(
     allocationSize = 1,
     name = "XXCCMS_OPASESSION_GENERATED_ID_S",
     sequenceName = "XXCCMS_OPA_GENERATED_ID_S")
 @Data
+@EntityListeners(AuditingEntityListener.class)
 public class OpaSession {
 
   /**

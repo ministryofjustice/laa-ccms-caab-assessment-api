@@ -97,20 +97,37 @@ public class AssessmentController implements AssessmentsApi {
   }
 
   /**
-   * Updates an assessment with the provided details.
+   * Patches an assessment with the provided details.
    *
    * @param assessmentId The ID of the assessment to update.
    * @param caabUserLoginId The CAAB user login ID performing the update.
-   * @param patch The details to update the assessment with.
+   * @param patch The patch to update the assessment with.
    * @return ResponseEntity with the status of the update operation.
    */
   @Override
-  public ResponseEntity<Void> updateAssessment(
+  public ResponseEntity<Void> patchAssessment(
       final Long assessmentId,
       final String caabUserLoginId,
       final PatchAssessmentDetail patch) {
 
-    assessmentService.updateAssessment(assessmentId, patch);
+    assessmentService.patchAssessment(assessmentId, patch);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
+
+  /**
+   * updates an assessment.
+   *
+   * @param caabUserLoginId The CAAB user login ID performing the update.
+   * @param assessment The details to update the assessment with.
+   * @return ResponseEntity with the status of the update operation.
+   */
+  @Override
+  public ResponseEntity<Void> updateAssessment(
+      final String caabUserLoginId,
+      final AssessmentDetail assessment) {
+
+    assessmentService.updateAssessment(assessment);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
 }

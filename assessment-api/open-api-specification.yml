@@ -41,6 +41,28 @@ paths:
           description: 'Not found'
         '500':
           description: 'Internal server error'
+    put:
+        tags:
+            - assessments
+        summary: 'update an existing assessment'
+        operationId: 'updateAssessment'
+        parameters:
+          - $ref: '#/components/parameters/requiredUserLoginId'
+        requestBody:
+            description: update an existing assessment
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/assessmentDetail'
+        responses:
+            '204':
+              description: 'Successful update'
+            '400':
+              description: 'Bad request'
+            '401':
+              description: 'Unauthorized'
+            '500':
+              description: 'Internal server error'
     delete:
       tags:
         - assessments
@@ -109,10 +131,10 @@ paths:
     patch:
       tags:
         - assessments
-      summary: 'update assessment'
-      operationId: 'updateAssessment'
+      summary: 'patch assessment'
+      operationId: 'patchAssessment'
       requestBody:
-        description: update an assessment
+        description: patch an assessment
         content:
           application/json:
             schema:
@@ -204,7 +226,8 @@ components:
         type: 'object'
         properties:
           id:
-            type: 'string'
+            type: 'integer'
+            format: 'int64'
           provider_id:
             type: 'string'
           case_reference_number:
@@ -257,7 +280,8 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: 'integer'
+          format: 'int64'
         name:
           type: string
         entities:
@@ -272,7 +296,8 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: 'integer'
+          format: 'int64'
         name:
           type: string
         attributes:
@@ -295,22 +320,27 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: 'integer'
+          format: 'int64'
         name:
           type: string
         type:
           type: string
         value:
           type: string
+        prepopulated:
+          type: boolean
+        asked:
+          type: boolean
       required:
         - id
         - attributeId
-        - value
     assessmentRelationshipDetail:
       type: object
       properties:
         id:
-          type: string
+          type: 'integer'
+          format: 'int64'
         name:
           type: string
         prepopulated:
@@ -324,7 +354,8 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: 'integer'
+          format: 'int64'
         target_entity_id:
           type: string
 

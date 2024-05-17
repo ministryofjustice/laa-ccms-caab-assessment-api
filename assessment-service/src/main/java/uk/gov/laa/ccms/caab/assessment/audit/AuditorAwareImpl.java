@@ -13,7 +13,7 @@ public class AuditorAwareImpl implements AuditorAware<String> {
   public static final ThreadLocal<String> currentUserHolder = new ThreadLocal<String>();
 
   @Override
-  public Optional<String> getCurrentAuditor() {
+  public Optional getCurrentAuditor() {
     return Optional.of(currentUserHolder.get());
   }
 
