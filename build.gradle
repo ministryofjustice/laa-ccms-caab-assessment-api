@@ -2,4 +2,6 @@ plugins {
     id 'uk.gov.laa.ccms.springboot.laa-ccms-spring-boot-gradle-plugin' version '0.0.1-30a2c57-SNAPSHOT' apply false
 }
 
-group = 'uk.gov.laa.ccms.caab'
+subprojects {
+    group = 'uk.gov.laa.ccms.caab'
+}
