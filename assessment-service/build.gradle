@@ -1,22 +1,5 @@
 apply plugin: 'uk.gov.laa.ccms.springboot.laa-ccms-spring-boot-gradle-plugin'
 
-sourceSets {
-    integrationTest {
-        java {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
-        }
-    }
-}
-
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
-    integrationTestImplementation.extendsFrom(testImplementation)
-    integrationTestRuntimeOnly.extendsFrom(testRuntimeOnly)
-}
-
 dependencies {
     implementation project(':assessment-api')
 
@@ -46,14 +29,6 @@ dependencies {
 
 test {
     useJUnitPlatform()
-}
-
-task integrationTest(type: Test) {
-    useJUnitPlatform()
-    description = "Run integration tests"
-    group = "verification"
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
 }
 
 jacocoTestReport {
