@@ -6,10 +6,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaCheckpoint;
@@ -116,7 +123,7 @@ class AssessmentServiceTest {
 
     when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(opaSession));
 
-    assessmentService.updateAssessment(assessmentId, patch);
+    assessmentService.patchAssessment(assessmentId, patch);
 
     verify(opaSessionRepository).findById(assessmentId);
     verify(assessmentMapper).mapIntoOpaSession(opaSession, patch);
@@ -131,7 +138,7 @@ class AssessmentServiceTest {
     when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.empty());
 
     ApplicationException thrown = assertThrows(ApplicationException.class, () -> {
-      assessmentService.updateAssessment(assessmentId, patch);
+      assessmentService.patchAssessment(assessmentId, patch);
     });
 
     assertEquals(HttpStatus.NOT_FOUND, thrown.getHttpStatus());
@@ -206,6 +213,41 @@ class AssessmentServiceTest {
     assertEquals(HttpStatus.NOT_FOUND, thrown.getHttpStatus());
     assertTrue(thrown.getMessage().contains("Assessment checkpoint with id: " + assessmentId + " not found"));
     verify(opaSessionRepository).findById(assessmentId);
+  }
+
+  @Test
+  void updateAssessment_updatesExistingAssessment() {
+    Long existingAssessmentId = 1L;
+    AssessmentDetail assessmentDetail = new AssessmentDetail();
+    assessmentDetail.setId(existingAssessmentId);
+    OpaSession existingOpaSession = new OpaSession();
+    existingOpaSession.setId(existingAssessmentId);
+
+    when(assessmentMapper.toOpaSession(assessmentDetail)).thenReturn(existingOpaSession);
+    when(opaSessionRepository.existsById(existingAssessmentId)).thenReturn(true);
+
+    assessmentService.updateAssessment(assessmentDetail);
+
+    verify(opaSessionRepository).save(existingOpaSession);
+  }
+
+  @Test
+  void updateAssessment_throwsExceptionWhenAssessmentNotFound() {
+    Long nonExistingAssessmentId = 2L;
+    AssessmentDetail assessmentDetail = new AssessmentDetail();
+    assessmentDetail.setId(nonExistingAssessmentId);
+    OpaSession nonExistingOpaSession = new OpaSession();
+    nonExistingOpaSession.setId(nonExistingAssessmentId);
+
+    when(assessmentMapper.toOpaSession(assessmentDetail)).thenReturn(nonExistingOpaSession);
+    when(opaSessionRepository.existsById(nonExistingAssessmentId)).thenReturn(false);
+
+    Exception exception = assertThrows(ApplicationException.class, () -> {
+      assessmentService.updateAssessment(assessmentDetail);
+    });
+
+    assertEquals(String.format("Assessment with id %s not found", nonExistingAssessmentId), exception.getMessage());
+    verify(opaSessionRepository, never()).save(any());
   }
 
 }

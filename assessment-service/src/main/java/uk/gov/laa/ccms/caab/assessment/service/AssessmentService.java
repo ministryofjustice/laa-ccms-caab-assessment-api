@@ -101,10 +101,29 @@ public class AssessmentService {
         );
   }
 
+  /**
+   * Updates the given assessment.
+   *
+   * @param assessment the assessment details to update
+   * @throws ApplicationException if the assessment with the specified ID is not found
+   */
+  @Transactional
+  public void updateAssessment(
+      final AssessmentDetail assessment) {
+
+    OpaSession opaSession = assessmentMapper.toOpaSession(assessment);
+    if (opaSessionRepository.existsById(opaSession.getId())) {
+      opaSessionRepository.save(opaSession);
+    } else {
+      throw new ApplicationException(
+          String.format("Assessment with id %s not found", opaSession.getId()),
+          HttpStatus.NOT_FOUND);
+    }
+  }
 
 
   /**
-   * Updates an assessment's details in the database.
+   * Patches an assessment's details in the database.
    *
    * @param assessmentId The ID of the assessment to update.
    * @param patch The new details to be applied to the assessment.
@@ -112,7 +131,7 @@ public class AssessmentService {
    *         does not exist.
    */
   @Transactional
-  public void updateAssessment(
+  public void patchAssessment(
       final Long assessmentId,
       final PatchAssessmentDetail patch) {
     OpaSession opaSession = opaSessionRepository.findById(assessmentId)

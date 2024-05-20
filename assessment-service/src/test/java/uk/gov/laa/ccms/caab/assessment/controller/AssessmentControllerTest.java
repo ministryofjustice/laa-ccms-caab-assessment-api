@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.laa.ccms.caab.assessment.advice.GlobalExceptionHandler;
 import uk.gov.laa.ccms.caab.assessment.exception.ApplicationException;
@@ -150,6 +152,33 @@ class AssessmentControllerTest {
         .andExpect(status().isNoContent());
 
     verify(assessmentService).deleteCheckpoint(assessmentId);
+  }
+
+  @Test
+  public void patchAssessment_returnsNoContent_whenPatchIsSuccessful() throws Exception {
+    Long assessmentId = 1L;
+    PatchAssessmentDetail patch = new PatchAssessmentDetail();
+
+    this.mockMvc.perform(patch("/assessments/{assessment-id}", assessmentId)
+            .header("caab-User-Login-Id", "TestUser")
+            .content(new ObjectMapper().writeValueAsString(patch))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isNoContent());
+
+    verify(assessmentService).patchAssessment(assessmentId, patch);
+  }
+
+  @Test
+  public void updateAssessment_returnsNoContent_whenUpdateIsSuccessful() throws Exception {
+    AssessmentDetail assessment = new AssessmentDetail();
+
+    this.mockMvc.perform(put("/assessments")
+            .header("caab-User-Login-Id", "TestUser")
+            .content(new ObjectMapper().writeValueAsString(assessment))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isNoContent());
+
+    verify(assessmentService).updateAssessment(assessment);
   }
 
 }
