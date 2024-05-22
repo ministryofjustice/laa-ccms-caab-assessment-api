@@ -11,21 +11,9 @@ paths:
       operationId: 'getAssessments'
       parameters:
         - $ref: '#/components/parameters/assessmentType'
-        - name: 'provider-id'
-          in: 'query'
-          schema:
-            type: 'string'
-            example: '1234567890'
-        - name: 'case-reference-number'
-          in: 'query'
-          schema:
-              type: 'string'
-              example: '1234567890'
-        - name: 'status'
-          in: 'query'
-          schema:
-            type: 'string'
-            example: 'INCOMPLETE'
+        - $ref: '#/components/parameters/providerId'
+        - $ref: '#/components/parameters/caseReferenceNumber'
+        - $ref: '#/components/parameters/status'
       responses:
         '200':
           description: 'Successful operation'
@@ -41,28 +29,6 @@ paths:
           description: 'Not found'
         '500':
           description: 'Internal server error'
-    put:
-        tags:
-            - assessments
-        summary: 'update an existing assessment'
-        operationId: 'updateAssessment'
-        parameters:
-          - $ref: '#/components/parameters/requiredUserLoginId'
-        requestBody:
-            description: update an existing assessment
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/assessmentDetail'
-        responses:
-            '204':
-              description: 'Successful update'
-            '400':
-              description: 'Bad request'
-            '401':
-              description: 'Unauthorized'
-            '500':
-              description: 'Internal server error'
     delete:
       tags:
         - assessments
@@ -83,11 +49,7 @@ paths:
           schema:
             type: 'string'
             example: '1234567890'
-        - name: 'status'
-          in: 'query'
-          schema:
-            type: 'string'
-            example: 'INCOMPLETE'
+        - $ref: '#/components/parameters/status'
       responses:
         '204':
           description: 'Successful deletion'
@@ -99,6 +61,28 @@ paths:
           description: 'Not found'
         '500':
           description: 'Internal server error'
+    post:
+      tags:
+        - assessments
+      summary: 'create an assessment'
+      operationId: 'createAssessment'
+      parameters:
+        - $ref: '#/components/parameters/requiredUserLoginId'
+      requestBody:
+        description: create an assessment
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/assessmentDetail'
+      responses:
+        '201':
+          description: 'Successful create'
+        '400':
+          description: 'Bad request'
+        '401':
+          description: 'Unauthorized'
+        '500':
+          description: 'Internal server error'
   /assessments/{assessment-id}:
     get:
       tags:
@@ -106,13 +90,7 @@ paths:
       summary: 'get assessment by id '
       operationId: 'getAssessment'
       parameters:
-        - name: 'assessment-id'
-          in: 'path'
-          required: true
-          schema:
-            type: 'integer'
-            format: 'int64'
-            example: '1234567890'
+        - $ref: '#/components/parameters/assessmentId'
       responses:
         '200':
           description: 'Successful operation'
@@ -128,6 +106,29 @@ paths:
           description: 'Not found'
         '500':
           description: 'Internal server error'
+    put:
+      tags:
+        - assessments
+      summary: 'update an existing assessment'
+      operationId: 'updateAssessment'
+      parameters:
+        - $ref: '#/components/parameters/assessmentId'
+        - $ref: '#/components/parameters/requiredUserLoginId'
+      requestBody:
+        description: update an existing assessment
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/assessmentDetail'
+      responses:
+        '204':
+          description: 'Successful update'
+        '400':
+          description: 'Bad request'
+        '401':
+          description: 'Unauthorized'
+        '500':
+          description: 'Internal server error'
     patch:
       tags:
         - assessments
@@ -140,13 +141,7 @@ paths:
             schema:
               $ref: '#/components/schemas/patchAssessmentDetail'
       parameters:
-        - name: 'assessment-id'
-          in: 'path'
-          required: true
-          schema:
-            type: 'integer'
-            format: 'int64'
-            example: '1234567890'
+        - $ref: '#/components/parameters/assessmentId'
         - $ref: '#/components/parameters/requiredUserLoginId'
       responses:
         '204':
@@ -166,13 +161,7 @@ paths:
       summary: 'delete checkpoint from assessment'
       operationId: 'deleteAssessmentCheckpoint'
       parameters:
-        - name: 'assessment-id'
-          in: 'path'
-          required: true
-          schema:
-            type: 'integer'
-            format: 'int64'
-            example: '1234567890'
+        - $ref: '#/components/parameters/assessmentId'
         - $ref: '#/components/parameters/requiredUserLoginId'
       responses:
         '204':
@@ -204,7 +193,14 @@ components:
             - 'meansAssessment_PREPOP'
             - 'meritsAssessment'
             - 'meritsAssessment_PREPOP'
-
+    assessmentId:
+        name: 'assessment-id'
+        in: 'path'
+        required: true
+        schema:
+          type: 'integer'
+          format: 'int64'
+          example: '1234567890'
     requiredUserLoginId:
         name: 'Caab-User-Login-Id'
         in: header
@@ -212,6 +208,24 @@ components:
         schema:
           type: 'string'
           example: 'SOMEUSER@COMPANY.CO.UK'
+    providerId:
+        name: 'provider-id'
+        in: 'query'
+        schema:
+          type: 'string'
+          example: '1234567890'
+    caseReferenceNumber:
+        name: 'case-reference-number'
+        in: 'query'
+        schema:
+          type: 'string'
+          example: '1234567890'
+    status:
+        name: 'status'
+        in: 'query'
+        schema:
+          type: 'string'
+          example: 'INCOMPLETE'
 
   schemas:
     assessmentDetails:
@@ -289,7 +303,6 @@ components:
           items:
             $ref: '#/components/schemas/assessmentEntityDetail'
       required:
-        - id
         - entityType
         - entities
     assessmentEntityDetail:
@@ -312,8 +325,9 @@ components:
             $ref: '#/components/schemas/assessmentRelationshipDetail'
         prepopulated:
           type: boolean
+        completed:
+          type: boolean
       required:
-        - id
         - entityId
         - prepopulated
     assessmentAttributeDetail:
@@ -333,7 +347,6 @@ components:
         asked:
           type: boolean
       required:
-        - id
         - attributeId
     assessmentRelationshipDetail:
       type: object

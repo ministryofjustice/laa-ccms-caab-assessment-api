@@ -61,6 +61,23 @@ public class AssessmentService {
             HttpStatus.NOT_FOUND));
   }
 
+
+  /**
+   * Creates an assessment and saves it to the repository.
+   *
+   * @param assessmentDetail the details of the assessment to be created
+   * @return the ID of the created assessment
+   */
+  @Transactional
+  public Long createAssessment(
+      final AssessmentDetail assessmentDetail) {
+
+    OpaSession assessment = assessmentMapper.toOpaSession(assessmentDetail);
+    opaSessionRepository.save(assessment);
+
+    return assessment.getId();
+  }
+
   /**
    * Deletes assessments from the repository based on specified criteria and a list of names.
    *
@@ -102,22 +119,24 @@ public class AssessmentService {
   }
 
   /**
-   * Updates the given assessment.
+   * Updates an assessment in the database.
    *
-   * @param assessment the assessment details to update
-   * @throws ApplicationException if the assessment with the specified ID is not found
+   * @param assessmentId The ID of the assessment to update.
+   * @param assessment The new details to be applied to the assessment.
+   * @throws ApplicationException if the assessment with the specified ID
+   *         does not exist.
    */
   @Transactional
   public void updateAssessment(
+      final Long assessmentId,
       final AssessmentDetail assessment) {
 
-    OpaSession opaSession = assessmentMapper.toOpaSession(assessment);
-    if (opaSessionRepository.existsById(opaSession.getId())) {
-      opaSessionRepository.save(opaSession);
+    if (opaSessionRepository.existsById(assessmentId)) {
+      OpaSession session = assessmentMapper.toOpaSession(assessment);
+      opaSessionRepository.save(session);
     } else {
       throw new ApplicationException(
-          String.format("Assessment with id %s not found", opaSession.getId()),
-          HttpStatus.NOT_FOUND);
+          String.format("Assessment with id %s not found", assessmentId), HttpStatus.NOT_FOUND);
     }
   }
 

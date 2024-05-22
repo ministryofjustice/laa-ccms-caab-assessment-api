@@ -6,7 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Represents an Oracle Intelligence Advisor relationship target.
@@ -17,7 +18,8 @@ import lombok.Data;
     allocationSize = 1,
     name = "XXCCMS_OPA_RELATIONSHIP_TARGET_S",
     sequenceName = "XXCCMS_OPA_GENERATED_ID_S")
-@Data
+@Getter
+@Setter
 public class OpaRelationshipTarget {
 
   /**

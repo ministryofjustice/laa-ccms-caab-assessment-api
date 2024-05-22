@@ -13,7 +13,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.List;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.type.NumericBooleanConverter;
 
 /**
@@ -25,7 +26,8 @@ import org.hibernate.type.NumericBooleanConverter;
     allocationSize = 1,
     name = "XXCCMS_OPA_ENTITY_S",
     sequenceName = "XXCCMS_OPA_GENERATED_ID_S")
-@Data
+@Getter
+@Setter
 public class OpaEntity {
 
   /**
@@ -87,6 +89,12 @@ public class OpaEntity {
   @Column(name = "PREPOPULATED")
   @Convert(converter = NumericBooleanConverter.class)
   private Boolean prepopulated;
+
+  @Column(name = "COMPLETED")
+  @Convert(converter = NumericBooleanConverter.class)
+  private Boolean completed;
+
+
 
 
 }

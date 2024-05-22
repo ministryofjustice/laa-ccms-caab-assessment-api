@@ -9,14 +9,16 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Represents an Oracle Intelligence Advisor Checkpoint.
  */
 @Entity
 @Table(name = "XXCCMS_OPA_CHECKPOINT")
-@Data
+@Getter
+@Setter
 public class OpaCheckpoint {
 
   @Id

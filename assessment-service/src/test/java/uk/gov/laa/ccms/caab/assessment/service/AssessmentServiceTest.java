@@ -6,16 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Path;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -226,7 +220,7 @@ class AssessmentServiceTest {
     when(assessmentMapper.toOpaSession(assessmentDetail)).thenReturn(existingOpaSession);
     when(opaSessionRepository.existsById(existingAssessmentId)).thenReturn(true);
 
-    assessmentService.updateAssessment(assessmentDetail);
+    assessmentService.updateAssessment(existingAssessmentId, assessmentDetail);
 
     verify(opaSessionRepository).save(existingOpaSession);
   }
@@ -239,15 +233,43 @@ class AssessmentServiceTest {
     OpaSession nonExistingOpaSession = new OpaSession();
     nonExistingOpaSession.setId(nonExistingAssessmentId);
 
-    when(assessmentMapper.toOpaSession(assessmentDetail)).thenReturn(nonExistingOpaSession);
     when(opaSessionRepository.existsById(nonExistingAssessmentId)).thenReturn(false);
 
     Exception exception = assertThrows(ApplicationException.class, () -> {
-      assessmentService.updateAssessment(assessmentDetail);
+      assessmentService.updateAssessment(nonExistingAssessmentId, assessmentDetail);
     });
 
     assertEquals(String.format("Assessment with id %s not found", nonExistingAssessmentId), exception.getMessage());
     verify(opaSessionRepository, never()).save(any());
   }
+
+  @Test
+  void testCreateAssessment() {
+    AssessmentDetail assessmentDetail = new AssessmentDetail();
+    OpaSession session = new OpaSession();
+    session.setId(1L);
+
+    when(assessmentMapper.toOpaSession(assessmentDetail)).thenReturn(session);
+    when(opaSessionRepository.save(session)).thenReturn(session);
+
+    Long createdId = assessmentService.createAssessment(assessmentDetail);
+
+    assertNotNull(createdId);
+    assertEquals(session.getId(), createdId);
+    verify(assessmentMapper).toOpaSession(assessmentDetail);
+    verify(opaSessionRepository).save(session);
+  }
+
+  @Test
+  void testBuildQuerySpecification() {
+    OpaSession session = new OpaSession();
+    Example<OpaSession> example = Example.of(session);
+    List<String> names = List.of("name1", "name2");
+
+    Specification<OpaSession> specification = assessmentService.buildQuerySpecification(example, names);
+
+    assertNotNull(specification);
+  }
+
 
 }

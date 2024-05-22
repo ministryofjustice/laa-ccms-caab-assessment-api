@@ -3,7 +3,8 @@ package uk.gov.laa.ccms.caab.assessment.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.util.Date;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedBy;
@@ -13,7 +14,8 @@ import org.springframework.data.annotation.LastModifiedBy;
  * Represents an audit trail for various entities within the CCMS system.
  */
 @Embeddable
-@Data
+@Getter
+@Setter
 public class AuditTrail {
 
   /**

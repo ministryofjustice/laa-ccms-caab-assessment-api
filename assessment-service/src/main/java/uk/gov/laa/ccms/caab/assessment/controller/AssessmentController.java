@@ -1,10 +1,12 @@
 package uk.gov.laa.ccms.caab.assessment.controller;
 
+import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import uk.gov.laa.ccms.caab.assessment.api.AssessmentsApi;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetails;
@@ -55,6 +57,21 @@ public class AssessmentController implements AssessmentsApi {
         .status(status);
 
     return ResponseEntity.ok(assessmentService.getAssessments(criteria, name));
+  }
+
+  @Override
+  public ResponseEntity<Void> createAssessment(
+      final String caabUserLoginId,
+      final AssessmentDetail assessment) {
+
+    Long assessmentId = assessmentService.createAssessment(assessment);
+
+    URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
+        .path("/{id}")
+        .buildAndExpand(assessmentId)
+        .toUri();
+
+    return ResponseEntity.created(uri).build();
   }
 
   @Override
@@ -117,17 +134,22 @@ public class AssessmentController implements AssessmentsApi {
   /**
    * updates an assessment.
    *
+   * @param assessmentId The ID of the assessment to update.
    * @param caabUserLoginId The CAAB user login ID performing the update.
    * @param assessment The details to update the assessment with.
    * @return ResponseEntity with the status of the update operation.
    */
   @Override
   public ResponseEntity<Void> updateAssessment(
+      final Long assessmentId,
       final String caabUserLoginId,
       final AssessmentDetail assessment) {
 
-    assessmentService.updateAssessment(assessment);
+    assessmentService.updateAssessment(assessmentId, assessment);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
+
+
+
 
 }

@@ -5,11 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static uk.gov.laa.ccms.caab.assessment.audit.AuditorAwareImpl.currentUserHolder;
 
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.management.relation.Relation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -31,6 +31,26 @@ public abstract class BaseAssessmentControllerIntegrationTest {
 
   @Autowired
   private AssessmentController assessmentController;
+
+  protected final String caabUserLoginId = "audit@user.com";
+
+  @Test
+  @Transactional
+  public void testCreateAssessment_expect201() {
+
+    currentUserHolder.set(caabUserLoginId);
+
+    AssessmentDetail assessment = new AssessmentDetail()
+        .name("assessment1")
+        .providerId("owner1")
+        .caseReferenceNumber("1234567890")
+        .status("status1");
+
+    ResponseEntity<Void> response =
+        assessmentController.createAssessment(caabUserLoginId, assessment);
+
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+  }
 
   //get by id expect 200
   @Test
@@ -189,11 +209,12 @@ public abstract class BaseAssessmentControllerIntegrationTest {
   @Sql(scripts = "/sql/assessments_insert.sql")
   @Transactional
   public void testUpdateAssessment() {
-    final String loginId = "testUser";
+    final Long assessmentId = 26L;
+    currentUserHolder.set(caabUserLoginId);
 
     AssessmentDetail expected = buildAssessmentDetail();
 
-    ResponseEntity<Void> response = assessmentController.updateAssessment(loginId, expected);
+    ResponseEntity<Void> response = assessmentController.updateAssessment(assessmentId, caabUserLoginId, expected);
     assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 
     ResponseEntity<AssessmentDetail> updatedResponse = assessmentController.getAssessment(expected.getId());
