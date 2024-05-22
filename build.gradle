@@ -1,7 +1,12 @@
 plugins {
-    id 'uk.gov.laa.ccms.springboot.laa-ccms-spring-boot-gradle-plugin' version '0.0.1' apply false
+    id 'net.researchgate.release' version '3.0.2'
+    id 'uk.gov.laa.ccms.springboot.laa-ccms-spring-boot-gradle-plugin' version '0.0.2' apply false
 }
 
 subprojects {
     group = 'uk.gov.laa.ccms.caab'
+
+    release {
+        tagTemplate = '$name-$version'
+    }
 }
