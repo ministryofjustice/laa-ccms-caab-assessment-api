@@ -37,6 +37,10 @@ public interface AssessmentMapper {
   @Mapping(target = "auditTrail", ignore = true)
   OpaSession toOpaSession(AssessmentDetail assessmentDetail);
 
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "opaSession", ignore = true)
+  OpaCheckpoint toOpaCheckpoint(AssessmentCheckpointDetail assessmentCheckpointDetail);
+
   /**
    * Post-processes the OpaSession after mapping from AssessmentDetail.
    *

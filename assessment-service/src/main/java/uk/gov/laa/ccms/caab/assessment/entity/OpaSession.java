@@ -13,7 +13,8 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.List;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
@@ -21,12 +22,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
  */
 @Entity
 @Table(name = "XXCCMS_OPA_SESSION")
-
 @SequenceGenerator(
     allocationSize = 1,
     name = "XXCCMS_OPASESSION_GENERATED_ID_S",
     sequenceName = "XXCCMS_OPA_GENERATED_ID_S")
-@Data
+@Getter
+@Setter
 @EntityListeners(AuditingEntityListener.class)
 public class OpaSession {
 

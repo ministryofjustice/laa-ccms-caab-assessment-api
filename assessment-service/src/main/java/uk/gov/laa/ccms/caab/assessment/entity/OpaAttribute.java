@@ -10,7 +10,8 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.type.NumericBooleanConverter;
 
 /**
@@ -22,7 +23,8 @@ import org.hibernate.type.NumericBooleanConverter;
     allocationSize = 1,
     name = "XXCCMS_OPA_ATTRIBUTE_S",
     sequenceName = "XXCCMS_OPA_GENERATED_ID_S")
-@Data
+@Getter
+@Setter
 public class OpaAttribute {
 
   /**

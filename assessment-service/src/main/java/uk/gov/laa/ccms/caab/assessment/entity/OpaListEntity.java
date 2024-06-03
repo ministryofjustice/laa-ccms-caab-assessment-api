@@ -12,7 +12,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.List;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Represents an Oracle Intelligence Advisor list entity.
@@ -23,7 +24,8 @@ import lombok.Data;
     allocationSize = 1,
     name = "XXCCMS_OPA_LIST_ENTITY_S",
     sequenceName = "XXCCMS_OPA_GENERATED_ID_S")
-@Data
+@Getter
+@Setter
 public class OpaListEntity {
 
 

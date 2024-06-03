@@ -14,7 +14,8 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.Set;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.type.NumericBooleanConverter;
 
 /**
@@ -26,7 +27,8 @@ import org.hibernate.type.NumericBooleanConverter;
     allocationSize = 1,
     name = "XXCCMS_OPA_RELATIONSHIP_S",
     sequenceName = "XXCCMS_OPA_GENERATED_ID_S")
-@Data
+@Getter
+@Setter
 public class OpaRelationship {
 
   /**
