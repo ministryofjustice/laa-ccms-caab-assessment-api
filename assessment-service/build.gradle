@@ -7,8 +7,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation files('lib/ojdbc8.jar')
 
+    implementation 'uk.gov.laa.ccms.springboot:laa-ccms-spring-boot-starter-auth:0.0.3-a862d2f-SNAPSHOT'
+
     //Enable Swagger UI
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -25,6 +27,7 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:oracle-xe'
+    testImplementation 'com.h2database:h2'
 }
 
 test {

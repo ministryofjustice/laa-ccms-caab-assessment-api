@@ -6,3 +6,24 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: none
+
+laa.ccms.springboot.starter.auth:
+  authentication-header: "Authorization"
+  authorized-clients: '[
+      {
+          "name": "test-runner",
+          "roles": [
+              "ALL"
+          ],
+          "token": "78bd752c-814c-4fb5-801b-193839c8e768"
+      }
+  ]'
+  authorized-roles: '[
+      {
+          "name": "ALL",
+          "URIs": [
+              "/**"
+          ]
+      }
+  ]'
+  unprotected-uris: [ "" ]
