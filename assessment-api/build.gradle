@@ -6,7 +6,6 @@ apply plugin: 'uk.gov.laa.ccms.springboot.laa-ccms-spring-boot-gradle-plugin'
 
 dependencies {
 
-    implementation 'io.swagger.core.v3:swagger-annotations:2.2.22'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.data:spring-data-commons'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
@@ -40,14 +39,13 @@ openApiGenerate {
     configOptions = [
             delegatePattern       : "false",
             interfaceOnly         : "true", // This will only generate interfaces, not implementations
-            dateLibrary           : "java17",
-            java17                : "true",
+            dateLibrary           : "legacy",
             useTags               : "true",
             skipDefaultInterface  : "true",
             useJakartaEe          : "true",
-            annotationLibrary     : "swagger2",
             documentationProvider : "none",
             serializableModel     : "true",
+            annotationLibrary     : "swagger2",
             useSpringBoot3        : "true"
     ]
 }

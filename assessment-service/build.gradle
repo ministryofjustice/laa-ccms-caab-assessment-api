@@ -7,7 +7,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation files('lib/ojdbc8.jar')
 
-    implementation 'uk.gov.laa.ccms.springboot:laa-ccms-spring-boot-starter-auth:0.0.3-a862d2f-SNAPSHOT'
+    //Enable access token authentication
+    implementation 'uk.gov.laa.ccms.springboot:laa-ccms-spring-boot-starter-auth:0.0.3-b2f8726-SNAPSHOT'
 
     //Enable Swagger UI
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'

@@ -390,5 +390,6 @@ components:
           format: 'int64'
         target_entity_id:
           type: string
+
 security:
   - ApiKeyAuth: []
