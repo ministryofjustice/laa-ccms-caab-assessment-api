@@ -1,0 +1,20 @@
+laa.ccms.springboot.starter.auth:
+  authentication-header: "Authorization"
+  authorized-clients: '[
+      {
+          "name": "integration-test-runner",
+          "roles": [
+              "ALL"
+          ],
+          "token": "78bd752c-814c-4fb5-801b-193839c8e768"
+      }
+  ]'
+  authorized-roles: '[
+      {
+          "name": "ALL",
+          "URIs": [
+              "/**"
+          ]
+      }
+  ]'
+  unprotected-uris: [ "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/favicon.ico", "/open-api-specification.yml"]
