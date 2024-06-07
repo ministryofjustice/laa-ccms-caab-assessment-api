@@ -1,17 +1,8 @@
-spring:
-  datasource:
-    url: jdbc:h2:mem:testdb
-
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: none
-
 laa.ccms.springboot.starter.auth:
   authentication-header: "Authorization"
   authorized-clients: '[
       {
-          "name": "test-runner",
+          "name": "integration-test-runner",
           "roles": [
               "ALL"
           ],
@@ -26,4 +17,4 @@ laa.ccms.springboot.starter.auth:
           ]
       }
   ]'
-  unprotected-uris: [ "" ]
+  unprotected-uris: [ "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/favicon.ico", "/open-api-specification.yml"]

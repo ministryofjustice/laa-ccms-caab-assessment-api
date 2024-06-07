@@ -1,5 +1,9 @@
 package uk.gov.laa.ccms.caab.assessment.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -8,36 +12,47 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.ArrayList;
-import java.util.List;
+import jakarta.servlet.ServletException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import uk.gov.laa.ccms.caab.assessment.advice.GlobalExceptionHandler;
 import uk.gov.laa.ccms.caab.assessment.exception.ApplicationException;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetails;
 import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.service.AssessmentService;
 
-@WebMvcTest(AssessmentController.class)
-@Import(GlobalExceptionHandler.class)
+import java.util.ArrayList;
+import java.util.List;
+
+@ExtendWith(SpringExtension.class)
+@WebAppConfiguration
 class AssessmentControllerTest {
 
-  @MockBean
+  @Mock
   private AssessmentService assessmentService;
 
-  @Autowired
+  @InjectMocks
+  private AssessmentController applicationController;
+
   private MockMvc mockMvc;
+
+  @BeforeEach
+  public void setup() {
+    mockMvc = standaloneSetup(applicationController)
+            .build();
+  }
 
   @Test
   public void createAssessment_createsAssessmentSuccessfully() throws Exception {
@@ -71,7 +86,7 @@ class AssessmentControllerTest {
   }
 
   @Test
-  public void getAssessment_throwsNotFound() throws Exception {
+  public void getAssessment_throwsNotFound() {
     Long assessmentId = 1L;
     String errorMessage = String.format("Assessment with id %s not found", assessmentId);
 
@@ -81,10 +96,16 @@ class AssessmentControllerTest {
                 errorMessage,
                 HttpStatus.NOT_FOUND));
 
-    this.mockMvc.perform(get("/assessments/{assessment-id}", assessmentId))
-        .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.error_message").value(errorMessage))
-        .andExpect(jsonPath("$.http_status").value(HttpStatus.NOT_FOUND.value()));
+    ServletException ex = assertThrows(ServletException.class, () ->
+            this.mockMvc.perform(get("/assessments/{assessment-id}", assessmentId)),
+            "Expected ServletException to be thrown, but wasn't.");
+
+    assertTrue(ex.getMessage().contains(errorMessage));
+    assertInstanceOf(ApplicationException.class, ex.getRootCause());
+
+    ApplicationException appEx = (ApplicationException) ex.getRootCause();
+    assertEquals(HttpStatus.NOT_FOUND, appEx.getHttpStatus());
+    assertEquals(errorMessage, appEx.getErrorMessage());
 
     verify(assessmentService).getAssessment(assessmentId);
   }
