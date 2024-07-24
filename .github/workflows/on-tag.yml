@@ -79,6 +79,7 @@ jobs:
           path: assessment-service/build/libs/assessment-service-${{ steps.capture_version.outputs.app_version }}.jar
 
   ecr:
+    environment: development
     needs: [build-test-publish, define-image-tag]
     runs-on: ubuntu-latest
     permissions:
