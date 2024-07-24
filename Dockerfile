@@ -8,8 +8,8 @@ VOLUME /tmp
 COPY assessment-service-${app_version}.jar assessment-service.jar
 
 EXPOSE 8080
-RUN addgroup --system --gid 800 customgroup \
-    && adduser --system --uid 800 --ingroup customgroup --shell /bin/sh customuser
+RUN groupadd --system --gid 800 customgroup \
+    && useradd --system --uid 800 --gid customgroup --shell /bin/sh customuser
 RUN chown customuser:customgroup assessment-service.jar
 USER 800
 
