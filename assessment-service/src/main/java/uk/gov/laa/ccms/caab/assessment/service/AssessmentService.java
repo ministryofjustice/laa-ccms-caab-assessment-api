@@ -91,6 +91,7 @@ public class AssessmentService {
    * @param criteria the assessment details used as the deletion criteria.
    * @param names a list of assessment types used to further filter which assessments to delete.
    */
+  @Transactional
   public void deleteAssessments(
       final AssessmentDetail criteria,
       final List<String> names) {
