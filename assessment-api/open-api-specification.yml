@@ -365,6 +365,8 @@ components:
           type: boolean
         asked:
           type: boolean
+        inferencing_type:
+          type: string
       required:
         - attributeId
     assessmentRelationshipDetail:
