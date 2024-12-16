@@ -137,7 +137,7 @@ jobs:
           APP_VERSION: ${{ needs.build-test-publish.outputs.app_version }}
         run: |
           echo "${{ env.REPO_NAME }}-${{ env.APP_VERSION }}"
-          cd laa-ccms-caab-helm-charts/laa-ccms-caab-service/charts/laa-ccms-caab-assessment-api/
+          cd laa-ccms-caab-helm-charts/laa-ccms-caab-service/charts/caab-assessment-api/
           yq eval-all "( .appVersion = \"${{ env.REPO_NAME }}-${{ env.APP_VERSION }}\" )" -i Chart.yaml
           git config --global user.email "github@justice.gov.uk"
           git config --global user.name "GitHub Actions Bot"
