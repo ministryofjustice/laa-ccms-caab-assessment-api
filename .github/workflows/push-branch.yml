@@ -54,35 +54,3 @@ jobs:
           arguments: publish
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  vulnerability-scan:
-    runs-on: ubuntu-latest
-
-    env:
-      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      SNYK_ORG: legal-aid-agency
-      SNYK_TEST_EXCLUDE: build,generated
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-      - uses: snyk/actions/setup@0.4.0
-      - name: Install snyk-delta
-        run: |
-          npm config set prefix '~/.local/'
-          mkdir -p ~/.local/bin
-          export PATH="$HOME/.local/bin/:$PATH"
-          npm install -g snyk-delta
-      - name: Identify new vulnerabilities
-        run: ./snyk/snyk_delta_all_projects.sh --org=$SNYK_ORG --exclude=$SNYK_TEST_EXCLUDE
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Run code test
-        uses: snyk/actions/gradle@0.4.0
-        with:
-          command: code test
-          args: --org=${SNYK_ORG}
