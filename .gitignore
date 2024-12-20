@@ -93,3 +93,5 @@ test-results/
 
 .idea
 
+# Snyk
+.dccache
