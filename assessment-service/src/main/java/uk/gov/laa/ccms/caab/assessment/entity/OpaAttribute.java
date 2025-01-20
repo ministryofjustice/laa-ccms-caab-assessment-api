@@ -18,11 +18,12 @@ import org.hibernate.type.NumericBooleanConverter;
  * Represents an attribute of an Oracle Intelligence Advisor entity.
  */
 @Entity
-@Table(name = "XXCCMS_OPA_ATTRIBUTE")
+@Table(name = "XXCCMS_OPA_ATTRIBUTE", schema = "XXCCMS_PUI")
 @SequenceGenerator(
     allocationSize = 1,
     name = "XXCCMS_OPA_ATTRIBUTE_S",
-    sequenceName = "XXCCMS_OPA_GENERATED_ID_S")
+    sequenceName = "XXCCMS_OPA_GENERATED_ID_S",
+    schema = "XXCCMS_PUI")
 @Getter
 @Setter
 public class OpaAttribute {
