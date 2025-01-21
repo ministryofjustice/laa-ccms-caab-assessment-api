@@ -13,11 +13,12 @@ import lombok.Setter;
  * Represents an Oracle Intelligence Advisor relationship target.
  */
 @Entity
-@Table(name = "XXCCMS_OPA_RELSHIPTARGET")
+@Table(name = "XXCCMS_OPA_RELSHIPTARGET", schema = "XXCCMS_PUI")
 @SequenceGenerator(
     allocationSize = 1,
     name = "XXCCMS_OPA_RELATIONSHIP_TARGET_S",
-    sequenceName = "XXCCMS_OPA_GENERATED_ID_S")
+    sequenceName = "XXCCMS_OPA_GENERATED_ID_S",
+    schema = "XXCCMS_PUI")
 @Getter
 @Setter
 public class OpaRelationshipTarget {

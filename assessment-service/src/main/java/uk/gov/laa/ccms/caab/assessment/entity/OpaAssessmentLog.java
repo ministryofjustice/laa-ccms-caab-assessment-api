@@ -3,7 +3,6 @@ package uk.gov.laa.ccms.caab.assessment.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.Getter;
@@ -13,7 +12,7 @@ import lombok.Setter;
  * Represents the OPA Assessment Log.
  */
 @Entity
-@Table(name = "XXCCMS_OPA_ASSESSMENT_LOG")
+@Table(name = "XXCCMS_OPA_ASSESSMENT_LOG", schema = "XXCCMS_PUI")
 @Getter
 @Setter
 public class OpaAssessmentLog {

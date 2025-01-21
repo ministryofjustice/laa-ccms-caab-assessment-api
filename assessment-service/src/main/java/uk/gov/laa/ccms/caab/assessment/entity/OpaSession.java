@@ -21,11 +21,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
  * Represents an Oracle Intelligence Advisor session.
  */
 @Entity
-@Table(name = "XXCCMS_OPA_SESSION")
+@Table(name = "XXCCMS_OPA_SESSION", schema = "XXCCMS_PUI")
 @SequenceGenerator(
     allocationSize = 1,
     name = "XXCCMS_OPASESSION_GENERATED_ID_S",
-    sequenceName = "XXCCMS_OPA_GENERATED_ID_S")
+    sequenceName = "XXCCMS_OPA_GENERATED_ID_S",
+    schema = "XXCCMS_PUI")
 @Getter
 @Setter
 @EntityListeners(AuditingEntityListener.class)
