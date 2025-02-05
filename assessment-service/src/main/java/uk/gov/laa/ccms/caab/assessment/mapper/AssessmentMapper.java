@@ -98,7 +98,6 @@ public interface AssessmentMapper {
 
   @Mapping(target = "attributeId", source = "name")
   @Mapping(target = "attributeType", source = "type")
-  @Mapping(target = "inferencingType", ignore = true)
   @Mapping(target = "opaEntity", ignore = true)
   OpaAttribute toOpaAttribute(AssessmentAttributeDetail assessmentAttributeDetail);
 
