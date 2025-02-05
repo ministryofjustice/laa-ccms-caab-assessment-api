@@ -93,3 +93,7 @@ test-results/
 
 .idea
 
+# Snyk
+.dccache
+
+assessment-service/src/main/resources/application-secret.yml

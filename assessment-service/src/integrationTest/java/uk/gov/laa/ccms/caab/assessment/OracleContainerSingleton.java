@@ -1,6 +1,6 @@
 package uk.gov.laa.ccms.caab.assessment;
 
-import org.testcontainers.containers.OracleContainer;
+import org.testcontainers.oracle.OracleContainer;
 
 public class OracleContainerSingleton {
 
@@ -8,7 +8,8 @@ public class OracleContainerSingleton {
   private final OracleContainer oracleContainer;
 
   private OracleContainerSingleton() {
-    oracleContainer = new OracleContainer("gvenzl/oracle-xe:21-slim-faststart");
+    oracleContainer = new OracleContainer("gvenzl/oracle-free:23-slim-faststart")
+        .withUsername("XXCCMS_PUI");
     oracleContainer.start();
   }
 

@@ -19,11 +19,12 @@ import lombok.Setter;
  * Represents an Oracle Intelligence Advisor list entity.
  */
 @Entity
-@Table(name = "XXCCMS_OPA_LISTENTITY")
+@Table(name = "XXCCMS_OPA_LISTENTITY", schema = "XXCCMS_PUI")
 @SequenceGenerator(
     allocationSize = 1,
     name = "XXCCMS_OPA_LIST_ENTITY_S",
-    sequenceName = "XXCCMS_OPA_GENERATED_ID_S")
+    sequenceName = "XXCCMS_OPA_GENERATED_ID_S",
+    schema = "XXCCMS_PUI")
 @Getter
 @Setter
 public class OpaListEntity {

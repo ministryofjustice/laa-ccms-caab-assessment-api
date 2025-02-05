@@ -3,19 +3,24 @@ package uk.gov.laa.ccms.caab.assessment.service;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import uk.gov.laa.ccms.caab.assessment.constants.OpaAssessmentLogMap;
+import uk.gov.laa.ccms.caab.assessment.entity.OpaAssessmentLog;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaSession;
 import uk.gov.laa.ccms.caab.assessment.exception.ApplicationException;
 import uk.gov.laa.ccms.caab.assessment.mapper.AssessmentMapper;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetails;
 import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
+import uk.gov.laa.ccms.caab.assessment.repository.OpaAssessmentLogRepository;
 import uk.gov.laa.ccms.caab.assessment.repository.OpaSessionRepository;
 
 /**
@@ -26,6 +31,7 @@ import uk.gov.laa.ccms.caab.assessment.repository.OpaSessionRepository;
 public class AssessmentService {
 
   private final OpaSessionRepository opaSessionRepository;
+  private final OpaAssessmentLogRepository opaAssessmentLogRepository;
 
   private final AssessmentMapper assessmentMapper;
 
@@ -79,19 +85,64 @@ public class AssessmentService {
   }
 
   /**
-   * Deletes assessments from the repository based on specified criteria and a list of names.
+   * Deletes OpaSession entities and their associated logs from the repository based on the
+   * specified assessment criteria and a list of assessment types.
    *
-   * @param criteria the details of the assessment to use as deletion criteria.
-   * @param names a list of assessment types to further filter the assessments to be deleted.
+   * @param criteria the assessment details used as the deletion criteria.
+   * @param names a list of assessment types used to further filter which assessments to delete.
    */
+  @Transactional
   public void deleteAssessments(
       final AssessmentDetail criteria,
       final List<String> names) {
 
     OpaSession example = assessmentMapper.toOpaSession(criteria);
 
-    opaSessionRepository.deleteAll(
-        opaSessionRepository.findAll(buildQuerySpecification(Example.of(example), names)));
+    List<OpaSession> sessionsToDelete = opaSessionRepository.findAll(
+        buildQuerySpecification(Example.of(example), names));
+
+    Set<OpaAssessmentLog> logsToDelete = collectLogsToDelete(sessionsToDelete);
+
+    deleteLogs(logsToDelete);
+    if (!sessionsToDelete.isEmpty()) {
+      opaSessionRepository.deleteAll(sessionsToDelete);
+    }
+  }
+
+  /**
+   * Collects assessment logs that are associated with the sessions to be deleted.
+   *
+   * @param sessionsToDelete the list of sessions to delete
+   * @return a set of assessment logs to delete
+   */
+  protected Set<OpaAssessmentLog> collectLogsToDelete(List<OpaSession> sessionsToDelete) {
+    Set<OpaAssessmentLog> logsToDelete = new HashSet<>();
+
+    for (OpaSession session : sessionsToDelete) {
+      String sessionAssessmentType = session.getAssessment();
+
+      String logAssessmentType = OpaAssessmentLogMap
+          .findLogAssessmentTypeBySessionAssessmentType(sessionAssessmentType);
+
+      if (logAssessmentType != null) {
+        List<OpaAssessmentLog> assessmentLogs = opaAssessmentLogRepository
+            .findByTargetIdAndAssessment(session.getTargetId(), logAssessmentType);
+        logsToDelete.addAll(assessmentLogs);
+      }
+    }
+
+    return logsToDelete;
+  }
+
+  /**
+   * Deletes the provided assessment logs from the repository.
+   *
+   * @param logsToDelete the set of assessment logs to delete
+   */
+  protected void deleteLogs(Set<OpaAssessmentLog> logsToDelete) {
+    if (!logsToDelete.isEmpty()) {
+      opaAssessmentLogRepository.deleteAll(logsToDelete);
+    }
   }
 
   /**

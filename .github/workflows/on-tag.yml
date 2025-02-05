@@ -79,7 +79,6 @@ jobs:
           path: assessment-service/build/libs/assessment-service-${{ steps.capture_version.outputs.app_version }}.jar
 
   ecr:
-    environment: development
     needs: [build-test-publish, define-image-tag]
     runs-on: ubuntu-latest
     permissions:
@@ -97,8 +96,8 @@ jobs:
       - name: Configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets.DEV_ECR_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.DEV_ECR_REGION }}
+          role-to-assume: ${{ secrets.ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.ECR_REGION }}
 
       - name: Login ecr
         uses: aws-actions/amazon-ecr-login@v1
@@ -108,7 +107,7 @@ jobs:
       - name: docker build and push
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: ${{ vars.DEV_ECR_REPOSITORY }}
+          REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           REPO_NAME: ${{ needs.define-image-tag.outputs.repo_name }}
           APP_VERSION: ${{ needs.build-test-publish.outputs.app_version }}
         run: |
@@ -124,7 +123,6 @@ jobs:
   update-helm-chart:
     needs: [ build-test-publish, ecr, define-image-tag ]
     runs-on: ubuntu-latest
-    environment: development
     steps:
       - name: Checkout charts repo
         uses: actions/checkout@v3
@@ -139,7 +137,7 @@ jobs:
           APP_VERSION: ${{ needs.build-test-publish.outputs.app_version }}
         run: |
           echo "${{ env.REPO_NAME }}-${{ env.APP_VERSION }}"
-          cd laa-ccms-caab-helm-charts/laa-ccms-caab-service/charts/laa-ccms-caab-assessment-api/
+          cd laa-ccms-caab-helm-charts/laa-ccms-caab-service/charts/caab-assessment-api/
           yq eval-all "( .appVersion = \"${{ env.REPO_NAME }}-${{ env.APP_VERSION }}\" )" -i Chart.yaml
           git config --global user.email "github@justice.gov.uk"
           git config --global user.name "GitHub Actions Bot"
@@ -150,7 +148,6 @@ jobs:
   update-laa-ccms-caab-ui:
     needs: [ build-test-publish, define-image-tag ]
     runs-on: ubuntu-latest
-    environment: development
     steps:
       - name: Checkout caab-ui repo
         uses: actions/checkout@v3

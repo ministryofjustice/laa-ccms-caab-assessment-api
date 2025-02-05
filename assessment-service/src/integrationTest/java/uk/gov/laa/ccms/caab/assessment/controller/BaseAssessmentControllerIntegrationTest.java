@@ -66,12 +66,32 @@ public abstract class BaseAssessmentControllerIntegrationTest {
   private static Stream<Arguments> getAssessmentsArguments() {
 
     return Stream.of(
-        Arguments.of(List.of("assessment1"), "owner1", "1234567890", "status1"),
-        Arguments.of(List.of("assessment1"), null, null, null),
+        // Means assessment cases
+        Arguments.of(List.of("meansAssessment"), "owner1", "1234567890", "status1"),
+        Arguments.of(List.of("meansAssessment"), null, null, null),
         Arguments.of(null, "owner1", null, null),
         Arguments.of(null, null, "1234567890", null),
         Arguments.of(null, null, null, "status1"),
-        Arguments.of(null, null, null, null)
+
+        // Merits assessment cases
+        Arguments.of(List.of("meritsAssessment"), "owner2", "1234567891", "status2"),
+        Arguments.of(List.of("meritsAssessment"), null, null, null),
+        Arguments.of(null, "owner2", null, null),
+        Arguments.of(null, null, "1234567891", null),
+        Arguments.of(null, null, null, "status2"),
+
+        // Billing assessment cases
+        Arguments.of(List.of("billingAssessment"), "owner3", "1234567892", "status3"),
+        Arguments.of(List.of("billingAssessment"), null, null, null),
+        Arguments.of(null, "owner3", null, null),
+        Arguments.of(null, null, "1234567892", null),
+        Arguments.of(null, null, null, "status3"),
+
+        Arguments.of(List.of("poaAssessment"), "owner4", "1234567893", "status4"),
+        Arguments.of(List.of("poaAssessment"), null, null, null),
+        Arguments.of(null, "owner4", null, null),
+        Arguments.of(null, null, "1234567893", null),
+        Arguments.of(null, null, null, "status4")
     );
   }
 
@@ -94,11 +114,11 @@ public abstract class BaseAssessmentControllerIntegrationTest {
   private static Stream<Arguments> getAssessmentsEmptyArguments() {
 
     return Stream.of(
-        Arguments.of(List.of("assessment2"), "owner2", "1234567891", "status2"),
+        Arguments.of(List.of("assessment2"), "random1", "1234567891", "status2"),
         Arguments.of(List.of("assessment2"), null, null, null),
-        Arguments.of(null, "owner2", null, null),
-        Arguments.of(null, null, "1234567891", null),
-        Arguments.of(null, null, null, "status2")
+        Arguments.of(null, "random1", null, null),
+        Arguments.of(null, null, "0987654321", null),
+        Arguments.of(null, null, null, "randomStatus")
     );
   }
 
@@ -120,7 +140,8 @@ public abstract class BaseAssessmentControllerIntegrationTest {
 
   @Test
   @Sql(scripts = "/sql/assessments_insert.sql")
-  public void testGetAssessments_expect200_empty() {
+  @Transactional
+  public void testDeleteAssessment() {
     final String providerId = "owner1";
     final String caseReferenceNumber = "1234567890";
 

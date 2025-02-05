@@ -22,11 +22,12 @@ import org.hibernate.type.NumericBooleanConverter;
  * Represents an Oracle Intelligence Advisor relationship.
  */
 @Entity
-@Table(name = "XXCCMS_OPA_RELATIONSHIP")
+@Table(name = "XXCCMS_OPA_RELATIONSHIP", schema = "XXCCMS_PUI")
 @SequenceGenerator(
     allocationSize = 1,
     name = "XXCCMS_OPA_RELATIONSHIP_S",
-    sequenceName = "XXCCMS_OPA_GENERATED_ID_S")
+    sequenceName = "XXCCMS_OPA_GENERATED_ID_S",
+    schema = "XXCCMS_PUI")
 @Getter
 @Setter
 public class OpaRelationship {

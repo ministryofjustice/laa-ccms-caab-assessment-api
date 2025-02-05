@@ -16,7 +16,7 @@ import lombok.Setter;
  * Represents an Oracle Intelligence Advisor Checkpoint.
  */
 @Entity
-@Table(name = "XXCCMS_OPA_CHECKPOINT")
+@Table(name = "XXCCMS_OPA_CHECKPOINT", schema = "XXCCMS_PUI")
 @Getter
 @Setter
 public class OpaCheckpoint {
