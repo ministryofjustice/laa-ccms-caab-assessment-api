@@ -144,39 +144,3 @@ jobs:
           git add .
           git commit -m "update appVersion to $${{ env.REPO_NAME }}-${{ env.APP_VERSION }}"
           git push origin
-
-  update-laa-ccms-caab-ui:
-    needs: [ build-test-publish, define-image-tag ]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout caab-ui repo
-        uses: actions/checkout@v3
-        with:
-          repository: ministryofjustice/laa-ccms-caab
-          ref: main
-          token: ${{ secrets.REPO_TOKEN }}
-
-      - name: Create a new branch
-        env:
-          APP_VERSION: ${{ needs.build-test-publish.outputs.app_version }}
-        run: |
-          git checkout -b dependency/update-assessment-api-version-${APP_VERSION}
-
-      - name: Update gradle build file
-        env:
-          APP_VERSION: ${{ needs.build-test-publish.outputs.app_version }}
-        run: |
-          sed -i "s/uk.gov.laa.ccms.caab:assessment-api:[^']*/uk.gov.laa.ccms.caab:assessment-api:${APP_VERSION}/g" build.gradle
-
-      - name: Commit and push changes
-        env:
-          APP_VERSION: ${{ needs.build-test-publish.outputs.app_version }}
-        run: |
-          git config --global user.email "github@justice.gov.uk"
-          git config --global user.name "GitHub Actions Bot"
-          git add build.gradle
-          git commit -m "Update assessment-api version to ${APP_VERSION}"
-          git push origin dependency/update-assessment-api-version-${APP_VERSION}
-
-          gh auth login --with-token <<< "${{ secrets.REPO_TOKEN }}"
-          gh pr create --base main --head dependency/update-assessment-api-version-${APP_VERSION} --title "Update assessment-api version to ${APP_VERSION}" --body "Automatic PR raised by GitHub Actions to update assessment-api version to ${APP_VERSION}"
