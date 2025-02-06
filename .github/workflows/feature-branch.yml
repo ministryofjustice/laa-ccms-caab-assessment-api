@@ -1,0 +1,150 @@
+name: CI feature branch and deploy
+
+on:
+  push:
+    branches:
+      - 'feature-dev/**'
+      - 'feature-test/**'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  define-image-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      repo_name: ${{ steps.extract_repo_name.outputs.repo_name }}
+    steps:
+      - name: Extract short repo name
+        shell: bash
+        run: echo "repo_name=${GITHUB_REPOSITORY#*\/laa-ccms-}" >> $GITHUB_OUTPUT
+        id: extract_repo_name
+
+  build-test-publish:
+    runs-on: ubuntu-latest
+    outputs:
+      app_version: ${{ steps.capture_version.outputs.app_version }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Capture version
+        shell: bash
+        id: capture_version
+        run: |
+          BRANCH_NAME=${GITHUB_REF_NAME#feature-*/}
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          echo "${BRANCH_NAME}-${COMMIT_HASH}-SNAPSHOT"
+          echo "app_version=${BRANCH_NAME}-${COMMIT_HASH}-SNAPSHOT" >> $GITHUB_OUTPUT
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
+        with:
+          arguments: build -Pversion=${{ steps.capture_version.outputs.app_version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test
+        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
+        with:
+          arguments: jacocoTestCoverageVerification -Pversion=${{ steps.capture_version.outputs.app_version }}
+
+      - name: Integration Test
+        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
+        with:
+          arguments: integrationTest -Pversion=${{ steps.capture_version.outputs.app_version }}
+
+      - name: Publish package
+        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
+        with:
+          arguments: publish -Pversion=${{ steps.capture_version.outputs.app_version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload jarfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: assessment-api-jar
+          path: assessment-service/build/libs/assessment-service-${{ steps.capture_version.outputs.app_version }}.jar
+
+  ecr:
+    needs: [ build-test-publish, define-image-tag ]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # for requesting jwt
+      contents: read  # for actions/checkout
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download jar
+        uses: actions/download-artifact@v4
+        with:
+          name: assessment-api-jar
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.ECR_REGION }}
+
+      - name: Login ECR
+        uses: aws-actions/amazon-ecr-login@v1
+        id: login-ecr
+
+      - name: Build and push image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          REPO_NAME: ${{ needs.define-image-tag.outputs.repo_name }}
+          APP_VERSION: ${{ needs.build-test-publish.outputs.app_version }}
+        run: |
+          docker build --build-arg app_version=${{ env.APP_VERSION }} -t $REGISTRY/$REPOSITORY:${{ env.REPO_NAME }}-${{ env.APP_VERSION }} .
+          docker push $REGISTRY/$REPOSITORY:${{ env.REPO_NAME }}-${{ env.APP_VERSION }}
+
+      - name: Delete artifact
+        uses: geekyeggo/delete-artifact@v2
+        with:
+          name: assessment-api-jar
+
+  update-helm-chart:
+    needs: [ build-test-publish, ecr, define-image-tag ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout charts repo
+        uses: actions/checkout@v3
+        with:
+          repository: ministryofjustice/laa-ccms-caab-helm-charts
+          ref: development
+          path: laa-ccms-caab-helm-charts
+          token: ${{ secrets.REPO_TOKEN }}
+
+      - name: Update Helm chart
+        env:
+          FEATURE_BRANCH: ${{ github.ref_name }}
+          REPO_NAME: ${{ needs.define-image-tag.outputs.repo_name }}
+          APP_VERSION: ${{ needs.build-test-publish.outputs.app_version }}
+        run: |
+          cd laa-ccms-caab-helm-charts
+
+          git config --global user.email "github@justice.gov.uk"
+          git config --global user.name "GitHub Actions Bot"
+
+          git fetch origin
+          if git rev-parse --verify origin/$FEATURE_BRANCH; then
+            git checkout $FEATURE_BRANCH
+            git pull origin $FEATURE_BRANCH
+          else
+            git checkout -b $FEATURE_BRANCH
+          fi
+
+          cd laa-ccms-caab-service/charts/caab-assessment-api/
+          yq eval "( .appVersion = \"${REPO_NAME}-${APP_VERSION}\" )" -i Chart.yaml
+
+          git add .
+          git commit -m "Update appVersion to ${REPO_NAME}-${APP_VERSION}"
+          git push --set-upstream origin $FEATURE_BRANCH

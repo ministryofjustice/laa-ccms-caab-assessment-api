@@ -29,7 +29,7 @@ jobs:
         run: echo "repo_name=${GITHUB_REPOSITORY#*\/laa-ccms-}" >> $GITHUB_OUTPUT
         id: extract_repo_name
 
-  build-test-publish:
+  assemble-publish:
     runs-on: ubuntu-latest
     outputs:
       app_version: ${{ steps.capture_version.outputs.app_version }}
@@ -40,23 +40,10 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: Build with Gradle
+      - name: Build JAR with Gradle
         uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
         with:
-          arguments: build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Test
-        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
-        with:
-          arguments: jacocoTestCoverageVerification
-
-      - name: Integration Test
-        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
-        with:
-          arguments: integrationTest --tests '*IntegrationTest'
-
+          arguments: assemble
       - name: Capture version
         shell: bash
         id: capture_version
@@ -64,14 +51,12 @@ jobs:
           VERSION=$(grep "version=" gradle.properties | cut -d'=' -f2)
           echo "app_version=${VERSION}" >> $GITHUB_OUTPUT
           echo "Captured version: $VERSION"
-
       - name: Publish package
         uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
         with:
           arguments: publish
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: upload jarfile
         uses: actions/upload-artifact@v4
         with:
@@ -79,7 +64,7 @@ jobs:
           path: assessment-service/build/libs/assessment-service-${{ steps.capture_version.outputs.app_version }}.jar
 
   ecr:
-    needs: [build-test-publish, define-image-tag]
+    needs: [assemble-publish, define-image-tag]
     runs-on: ubuntu-latest
     permissions:
       id-token: write # for requesting jwt
@@ -109,7 +94,7 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           REPO_NAME: ${{ needs.define-image-tag.outputs.repo_name }}
-          APP_VERSION: ${{ needs.build-test-publish.outputs.app_version }}
+          APP_VERSION: ${{ needs.assemble-publish.outputs.app_version }}
         run: |
           echo "Captured version: ${{ env.APP_VERSION }}"
           docker build --build-arg app_version=${{ env.APP_VERSION }} -t $REGISTRY/$REPOSITORY:${{ env.REPO_NAME }}-${{ env.APP_VERSION }} .
@@ -121,7 +106,7 @@ jobs:
           name: assessment-api-jar
 
   update-helm-chart:
-    needs: [ build-test-publish, ecr, define-image-tag ]
+    needs: [ assemble-publish, ecr, define-image-tag ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout charts repo
@@ -134,7 +119,7 @@ jobs:
       - name: update helm chart
         env:
           REPO_NAME: ${{ needs.define-image-tag.outputs.repo_name }}
-          APP_VERSION: ${{ needs.build-test-publish.outputs.app_version }}
+          APP_VERSION: ${{ needs.assemble-publish.outputs.app_version }}
         run: |
           echo "${{ env.REPO_NAME }}-${{ env.APP_VERSION }}"
           cd laa-ccms-caab-helm-charts/laa-ccms-caab-service/charts/caab-assessment-api/
@@ -142,11 +127,11 @@ jobs:
           git config --global user.email "github@justice.gov.uk"
           git config --global user.name "GitHub Actions Bot"
           git add .
-          git commit -m "update appVersion to $${{ env.REPO_NAME }}-${{ env.APP_VERSION }}"
+          git commit -m "update appVersion to ${{ env.REPO_NAME }}-${{ env.APP_VERSION }}"
           git push origin
 
   update-laa-ccms-caab-ui:
-    needs: [ build-test-publish, define-image-tag ]
+    needs: [ assemble-publish, define-image-tag ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout caab-ui repo
@@ -158,19 +143,19 @@ jobs:
 
       - name: Create a new branch
         env:
-          APP_VERSION: ${{ needs.build-test-publish.outputs.app_version }}
+          APP_VERSION: ${{ needs.assemble-publish.outputs.app_version }}
         run: |
           git checkout -b dependency/update-assessment-api-version-${APP_VERSION}
 
       - name: Update gradle build file
         env:
-          APP_VERSION: ${{ needs.build-test-publish.outputs.app_version }}
+          APP_VERSION: ${{ needs.assemble-publish.outputs.app_version }}
         run: |
           sed -i "s/uk.gov.laa.ccms.caab:assessment-api:[^']*/uk.gov.laa.ccms.caab:assessment-api:${APP_VERSION}/g" build.gradle
 
       - name: Commit and push changes
         env:
-          APP_VERSION: ${{ needs.build-test-publish.outputs.app_version }}
+          APP_VERSION: ${{ needs.assemble-publish.outputs.app_version }}
         run: |
           git config --global user.email "github@justice.gov.uk"
           git config --global user.name "GitHub Actions Bot"
