@@ -4,12 +4,30 @@
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
+registries:
+  spring-boot-common-github-packages:
+    type: maven-repository
+    url: https://maven.pkg.github.com/ministryofjustice/laa-ccms-spring-boot-common
+    username: PhilDigitalJustice
+    password: ${{ secrets.REPO_TOKEN }}
 updates:
   - package-ecosystem: "gradle" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+    registries: "*"
     groups:
       gradle-updates:
         patterns:
-          - "**" # Matches all Gradle dependencies
+          - "!uk.gov.laa.ccms.*" # All external Gradle dependencies
+      internal-packages:
+        patterns:
+          - "uk.gov.laa.ccms.*" # All internal Gradle dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "**"
