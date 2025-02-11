@@ -34,14 +34,14 @@ jobs:
     outputs:
       app_version: ${{ steps.capture_version.outputs.app_version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up JDK 21
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
       - name: Build JAR with Gradle
-        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
+        uses: gradle/gradle-build-action@ac2d340dc04d9e1113182899e983b5400c17cda1
         with:
           arguments: assemble
       - name: Capture version
@@ -52,7 +52,7 @@ jobs:
           echo "app_version=${VERSION}" >> $GITHUB_OUTPUT
           echo "Captured version: $VERSION"
       - name: Publish package
-        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
+        uses: gradle/gradle-build-action@ac2d340dc04d9e1113182899e983b5400c17cda1
         with:
           arguments: publish
         env:
@@ -71,7 +71,7 @@ jobs:
       contents: read  # for actions/checkout
     steps:
       # Checkout github repo
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       # Assume role in cloud platform
       - name: download jar
         uses: actions/download-artifact@v4
@@ -79,13 +79,13 @@ jobs:
           name: assessment-api-jar
 
       - name: Configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.ECR_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.ECR_REGION }}
 
       - name: Login ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
         id: login-ecr
 
       # Build and push docker image to container repo
@@ -101,7 +101,7 @@ jobs:
           docker push $REGISTRY/$REPOSITORY:${{ env.REPO_NAME }}-${{ env.APP_VERSION }}
 
       - name: delete artifact
-        uses: geekyeggo/delete-artifact@v2
+        uses: geekyeggo/delete-artifact@v5
         with:
           name: assessment-api-jar
 
@@ -110,7 +110,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout charts repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: ministryofjustice/laa-ccms-caab-helm-charts
           ref: development
