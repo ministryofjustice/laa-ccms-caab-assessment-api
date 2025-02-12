@@ -35,9 +35,12 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build & test
-        run: ./gradlew build jacocoTestCoverageVerification
+        run: ./gradlew build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test coverage verification
+        run: ./gradlew jacocoTestCoverageVerification
 
       - name: Integration test
         run: ./gradlew integrationTest --tests '*IntegrationTest'
@@ -49,6 +52,27 @@ jobs:
 
       - name: Update version
         run: ./gradlew release -Prelease.useAutomaticVersion=true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: assessment-service/build/test-results
+          retention-days: 14
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: assessment-service/build/reports/tests
+          retention-days: 14
+
+      - name: Upload jacoco coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: assessment-service/build/reports/jacoco
+          retention-days: 14
 
   vulnerability-report:
     if: github.event.pull_request.merged == true

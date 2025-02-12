@@ -46,9 +46,12 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build & test
-        run: ./gradlew build jacocoTestCoverageVerification -Pversion=${{ steps.capture_version.outputs.app_version }}
+        run: ./gradlew build -Pversion=${{ steps.capture_version.outputs.app_version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test coverage verification
+        run: ./gradlew jacocoTestCoverageVerification
 
       - name: Integration test
         run: ./gradlew integrationTest --tests '*IntegrationTest'

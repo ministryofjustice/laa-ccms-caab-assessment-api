@@ -24,7 +24,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
 
     //Used for integration tests
-    implementation platform('org.testcontainers:testcontainers-bom:1.19.3')
+    testImplementation platform('org.testcontainers:testcontainers-bom:1.20.4')
     testImplementation 'org.testcontainers:testcontainers'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:oracle-free'
@@ -32,6 +32,8 @@ dependencies {
 
 test {
     useJUnitPlatform()
+
+    finalizedBy jacocoTestReport
 }
 
 jacocoTestReport {
