@@ -50,7 +50,16 @@ jobs:
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Upload checkstyle report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-report
+          path: assessment-service/build/reports/checkstyle
+          retention-days: 14
+
       - name: Upload test report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-report
@@ -58,6 +67,7 @@ jobs:
           retention-days: 14
 
       - name: Upload jacoco coverage report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-coverage-report

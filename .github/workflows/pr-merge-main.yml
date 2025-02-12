@@ -60,7 +60,16 @@ jobs:
           path: assessment-service/build/test-results
           retention-days: 14
 
+      - name: Upload checkstyle report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-report
+          path: assessment-service/build/reports/checkstyle
+          retention-days: 14
+
       - name: Upload test report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-report
@@ -68,11 +77,13 @@ jobs:
           retention-days: 14
 
       - name: Upload jacoco coverage report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-coverage-report
           path: assessment-service/build/reports/jacoco
           retention-days: 14
+
 
   vulnerability-report:
     if: github.event.pull_request.merged == true
