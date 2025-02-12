@@ -67,6 +67,20 @@ jobs:
           name: assessment-api-jar
           path: assessment-service/build/libs/assessment-service-${{ steps.capture_version.outputs.app_version }}.jar
 
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: assessment-service/build/reports/tests
+          retention-days: 14
+
+      - name: Upload jacoco coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: assessment-service/build/reports/jacoco
+          retention-days: 14
+
   ecr:
     needs: [ build-test-publish, define-image-tag ]
     runs-on: ubuntu-latest
