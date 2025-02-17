@@ -40,10 +40,14 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: Build JAR with Gradle
-        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
-        with:
-          arguments: assemble
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: ./gradlew assemble
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Capture version
         shell: bash
         id: capture_version
@@ -51,12 +55,12 @@ jobs:
           VERSION=$(grep "version=" gradle.properties | cut -d'=' -f2)
           echo "app_version=${VERSION}" >> $GITHUB_OUTPUT
           echo "Captured version: $VERSION"
+
       - name: Publish package
-        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
-        with:
-          arguments: publish
+        run: ./gradlew publish
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: upload jarfile
         uses: actions/upload-artifact@v4
         with:

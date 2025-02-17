@@ -42,27 +42,22 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: Build with Gradle
-        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
-        with:
-          arguments: build -Pversion=${{ steps.capture_version.outputs.app_version }}
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build & test
+        run: ./gradlew build -Pversion=${{ steps.capture_version.outputs.app_version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Test
-        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
-        with:
-          arguments: jacocoTestCoverageVerification
+      - name: Test coverage verification
+        run: ./gradlew jacocoTestCoverageVerification
 
-      - name: Integration Test
-        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
-        with:
-          arguments: integrationTest --tests '*IntegrationTest'
+      - name: Integration test
+        run: ./gradlew integrationTest --tests '*IntegrationTest'
 
       - name: Publish package
-        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
-        with:
-          arguments: publish -Pversion=${{ steps.capture_version.outputs.app_version }}
+        run: ./gradlew publish -Pversion=${{ steps.capture_version.outputs.app_version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -71,6 +66,30 @@ jobs:
         with:
           name: assessment-api-jar
           path: assessment-service/build/libs/assessment-service-${{ steps.capture_version.outputs.app_version }}.jar
+
+      - name: Upload checkstyle report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-report
+          path: assessment-service/build/reports/checkstyle
+          retention-days: 14
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: assessment-service/build/reports/tests
+          retention-days: 14
+
+      - name: Upload jacoco coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: assessment-service/build/reports/jacoco
+          retention-days: 14
 
   ecr:
     needs: [ build-test-publish, define-image-tag ]
