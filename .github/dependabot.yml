@@ -25,7 +25,7 @@ updates:
           - "uk.gov.laa.ccms.*" # All internal Gradle dependencies
     ignore:
       - dependency-name: "uk.gov.laa.ccms.*"
-        versions: "*-SNAPSHOT"
+        versions: ["*-SNAPSHOT"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
