@@ -23,6 +23,8 @@ updates:
       internal-packages:
         patterns:
           - "uk.gov.laa.ccms.*" # All internal Gradle dependencies
+        exclude-patterns:
+          - "*-SNAPSHOT"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
