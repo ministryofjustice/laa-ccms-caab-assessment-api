@@ -18,8 +18,8 @@ updates:
     registries: "*"
     groups:
       gradle-updates:
-        patterns:
-          - "!uk.gov.laa.ccms.*" # All external Gradle dependencies
+        exclude-patterns:
+          - "uk.gov.laa.ccms.*"
       internal-packages:
         patterns:
           - "uk.gov.laa.ccms.*" # All internal Gradle dependencies
