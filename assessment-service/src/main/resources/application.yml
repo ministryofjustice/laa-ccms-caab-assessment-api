@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: laa-ccms-caab-assessment-api
   datasource:
     url: ${CAAB_DATASOURCE_URL}
     driver-class-name: oracle.jdbc.OracleDriver
