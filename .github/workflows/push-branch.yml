@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build-test-publish:
-    uses: ministryofjustic/laa-ccms-common-workflows/.github/workflows/gradle-build-and-test@story/ccmspui-35-common-workflows
+    uses: ministryofjustic/laa-ccms-common-workflows/.github/workflows/gradle-build-and-test.yml@story/ccmspui-35-common-workflows
     with:
       java_version: 21
       java_distribution: 'temurin'
