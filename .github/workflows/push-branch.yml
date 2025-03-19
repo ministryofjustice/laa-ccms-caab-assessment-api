@@ -17,7 +17,7 @@ jobs:
     with:
       java_version: 21
       java_distribution: 'temurin'
-      integration_test_task: 'integrationTest'
+      integration_test_task: 'integrationTest --tests ''*IntegrationTest'''
       snyk_vulnerability_scan: 'true'
       snyk_organisation: 'legal-aid-agency'
       snyk_test_exclude: 'build,generated'
