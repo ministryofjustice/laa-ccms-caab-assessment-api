@@ -23,5 +23,5 @@ jobs:
       snyk_test_exclude: 'build,generated'
       snyk_target_reference: 'main'
     secrets:
-      github_token: ${{ secrets.GITHUB_TOKEN }}
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
       snyk_token: ${{ secrets.SNYK_TOKEN }}
