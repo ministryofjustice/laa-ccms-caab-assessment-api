@@ -1,4 +1,4 @@
-name: assessment-api pipeline
+name: build feature branch
 
 on:
   push:
@@ -12,12 +12,14 @@ permissions:
   packages: write
 
 jobs:
-  build-test-publish:
+  build-test-scan:
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-test.yml@story/ccmspui-35-common-workflows
     with:
       java_version: 21
       java_distribution: 'temurin'
       integration_test_task: "integrationTest --tests '*IntegrationTest'"
+      update_snapshot: 'false'
+      publish_package: 'false'
       snyk_vulnerability_scan: 'true'
       snyk_organisation: 'legal-aid-agency'
       snyk_test_exclude: 'build,generated'
