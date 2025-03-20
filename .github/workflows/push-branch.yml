@@ -11,19 +11,31 @@ permissions:
   contents: read
   packages: write
 
+env:
+  JAVA_VERSION: 21
+  JAVA_DISTRIBUTION: temurin
+
 jobs:
-  build-test-scan:
+
+  build-test:
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-test.yml@story/ccmspui-35-common-workflows
     with:
-      java_version: 21
-      java_distribution: 'temurin'
+      java_version: ${{ env.JAVA_VERSION }}
+      java_distribution: ${{ env.JAVA_DISTRIBUTION }}
       integration_test_task: "integrationTest --tests '*IntegrationTest'"
       update_snapshot: 'false'
       publish_package: 'false'
-      snyk_vulnerability_scan: 'true'
+    secrets:
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
+
+  vulnerability-scan:
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/snyk-vulnerability-scan.yml@story/ccmspui-35-common-workflows
+    with:
+      java_version: ${{ env.JAVA_VERSION }}
+      java_distribution: ${{ env.JAVA_DISTRIBUTION }}
       snyk_organisation: 'legal-aid-agency'
       snyk_test_exclude: 'build,generated'
       snyk_target_reference: 'main'
     secrets:
-      gh_token: ${{ secrets.GITHUB_TOKEN }}
-      snyk_token: ${{ secrets.SNYK_TOKEN }}
+      gh_token: ${{ secrets.gh_token }}
+      snyk_token: ${{ secrets.snyk_token }}
