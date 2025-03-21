@@ -14,7 +14,7 @@ jobs:
   set-short-repo-name:
     runs-on: ubuntu-latest
     steps:
-      - uses: ministryofjustice/laa-ccms-common-workflows/.github/actions/remove-prefix.yml@story/ccmspui-35-common-workflows
+      - uses: ministryofjustice/laa-ccms-common-workflows/.github/actions/remove-prefix@story/ccmspui-35-common-workflows
         with:
           string: ${{ github.event.repository.name }}
           prefix: '*laa-ccms-'
@@ -24,7 +24,7 @@ jobs:
     outputs:
       feature_version: ${{ steps.get-feature-version.outputs.feature_version }}
     steps:
-      - uses: ministryofjustice/laa-ccms-common-workflows/.github/actions/remove-prefix.yml@story/ccmspui-35-common-workflows
+      - uses: ministryofjustice/laa-ccms-common-workflows/.github/actions/remove-prefix@story/ccmspui-35-common-workflows
         id: get-feature-name
         with:
           string: ${{ github.ref_name }}
