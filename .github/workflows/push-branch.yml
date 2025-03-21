@@ -21,6 +21,7 @@ jobs:
       integration_test_task: "integrationTest --tests '*IntegrationTest'"
       publish_package: 'true'
       is_snapshot: 'true'
+      jacoco_coverage_enabled: 'true'
       junit_results_path: 'assessment-service/build/test-results'
       junit_report_path: 'assessment-service/build/reports/tests'
       checkstyle_report_path: 'assessment-service/build/reports/checkstyle'
