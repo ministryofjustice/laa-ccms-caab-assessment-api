@@ -13,14 +13,18 @@ permissions:
 
 jobs:
 
-  build-test:
-    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-test.yml@story/ccmspui-35-common-workflows
+  build-and-publish-snapshot:
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@story/ccmspui-35-common-workflows
     with:
       java_version: 21
       java_distribution: 'temurin'
       integration_test_task: "integrationTest --tests '*IntegrationTest'"
-      update_snapshot: 'false'
-      publish_package: 'false'
+      publish_package: 'true'
+      is_snapshot: 'true'
+      junit_results_path: 'assessment-service/build/test-results'
+      junit_report_path: 'assessment-service/build/reports/tests'
+      checkstyle_report_path: 'assessment-service/build/reports/checkstyle'
+      jacoco_coverage_report_path: 'assessment-service/build/reports/jacoco'
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -33,5 +37,5 @@ jobs:
       snyk_test_exclude: 'build,generated'
       snyk_target_reference: 'main'
     secrets:
-      gh_token: ${{ secrets.gh_token }}
-      snyk_token: ${{ secrets.snyk_token }}
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
+      snyk_token: ${{ secrets.SNYK_TOKEN }}

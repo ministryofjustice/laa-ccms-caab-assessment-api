@@ -17,119 +17,49 @@ permissions:
   packages: write
 
 jobs:
-  define-image-tag:
+  set-short-repo-name:
     runs-on: ubuntu-latest
-    # map a step output to job output
-    outputs:
-      tag_name: ${{ steps.extract_tag_name.outputs.tag_name }}
-      repo_name: ${{ steps.extract_repo_name.outputs.repo_name }}
     steps:
-      - name: Extract short repo name
-        shell: bash
-        run: echo "repo_name=${GITHUB_REPOSITORY#*\/laa-ccms-}" >> $GITHUB_OUTPUT
-        id: extract_repo_name
-
-  assemble-publish:
-    runs-on: ubuntu-latest
-    outputs:
-      app_version: ${{ steps.capture_version.outputs.app_version }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - uses: ministryofjustice/laa-ccms-common-workflows/.github/actions/remove-prefix.yml@story/ccmspui-35-common-workflows
         with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+          string: ${{ github.event.repository.name }}
+          prefix: '*laa-ccms-'
 
-      - name: Build
-        run: ./gradlew assemble
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  assemble-and-publish-snapshot:
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@story/ccmspui-35-common-workflows
+    with:
+      java_version: 21
+      java_distribution: 'temurin'
+      build_command: 'assemble'
+      publish_package: 'true'
+      jacoco_coverage_enabled: 'false'
+      junit_results: 'false'
+      junit_report: 'false'
+      checkstyle_report: 'false'
+    secrets:
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Capture version
-        shell: bash
-        id: capture_version
-        run: |
-          VERSION=$(grep "version=" gradle.properties | cut -d'=' -f2)
-          echo "app_version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "Captured version: $VERSION"
-
-      - name: Publish package
-        run: ./gradlew publish
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: upload jarfile
-        uses: actions/upload-artifact@v4
-        with:
-          name: assessment-api-jar
-          path: assessment-service/build/libs/assessment-service-${{ steps.capture_version.outputs.app_version }}.jar
-
-  ecr:
-    needs: [assemble-publish, define-image-tag]
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write # for requesting jwt
-      contents: read  # for actions/checkout
-    steps:
-      # Checkout github repo
-      - uses: actions/checkout@v4
-      # Assume role in cloud platform
-      - name: download jar
-        uses: actions/download-artifact@v4
-        with:
-          name: assessment-api-jar
-
-      - name: Configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.ECR_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.ECR_REGION }}
-
-      - name: Login ecr
-        uses: aws-actions/amazon-ecr-login@v2
-        id: login-ecr
-
-      # Build and push docker image to container repo
-      - name: docker build and push
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-          REPO_NAME: ${{ needs.define-image-tag.outputs.repo_name }}
-          APP_VERSION: ${{ needs.assemble-publish.outputs.app_version }}
-        run: |
-          echo "Captured version: ${{ env.APP_VERSION }}"
-          docker build --build-arg app_version=${{ env.APP_VERSION }} -t $REGISTRY/$REPOSITORY:${{ env.REPO_NAME }}-${{ env.APP_VERSION }} .
-          docker push $REGISTRY/$REPOSITORY:${{ env.REPO_NAME }}-${{ env.APP_VERSION }}
-
-      - name: delete artifact
-        uses: geekyeggo/delete-artifact@v5
-        with:
-          name: assessment-api-jar
+  ecr-publish-image:
+    needs: [ set-short-repo-name, assemble-and-publish-snapshot ]
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/ecr-publish-image.yml@story/ccmspui-35-common-workflows
+    with:
+      java_version: 21
+      java_distribution: 'temurin'
+      image_version: ${{ needs.set-short-repo-name.outputs.result }}-${{ needs.assemble-and-publish-snapshot.outputs.pubished_version }}
+    secrets:
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
+      ecr_repository: ${{ vars.ECR_REPOSITORY }}
+      ecr_region: ${{ vars.ECR_REGION }}
+      ecr_role_to_assume: ${{ secrets.ECR_ROLE_TO_ASSUME }}
 
   update-helm-chart:
-    needs: [ assemble-publish, ecr, define-image-tag ]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout charts repo
-        uses: actions/checkout@v4
-        with:
-          repository: ministryofjustice/laa-ccms-caab-helm-charts
-          ref: development
-          path: laa-ccms-caab-helm-charts
-          token: ${{ secrets.REPO_TOKEN }}
-      - name: update helm chart
-        env:
-          REPO_NAME: ${{ needs.define-image-tag.outputs.repo_name }}
-          APP_VERSION: ${{ needs.assemble-publish.outputs.app_version }}
-        run: |
-          echo "${{ env.REPO_NAME }}-${{ env.APP_VERSION }}"
-          cd laa-ccms-caab-helm-charts/laa-ccms-caab-service/charts/caab-assessment-api/
-          yq eval-all "( .appVersion = \"${{ env.REPO_NAME }}-${{ env.APP_VERSION }}\" )" -i Chart.yaml
-          git config --global user.email "github@justice.gov.uk"
-          git config --global user.name "GitHub Actions Bot"
-          git add .
-          git commit -m "update appVersion to ${{ env.REPO_NAME }}-${{ env.APP_VERSION }}"
-          git push origin
+    needs: [ set-short-repo-name, assemble-and-publish-snapshot, ecr-publish-image ]
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/update-helm-chart.yml@story/ccmspui-35-common-workflows
+    with:
+      helm_charts_repository: 'laa-ccms-caab-helm-charts'
+      helm_charts_branch: 'development'
+      service_name: 'laa-ccms-caab-service'
+      subchart_name: 'caab-assessment-api'
+      application_version: ${{ needs.set-short-repo-name.outputs.result }}-${{ needs.assemble-and-publish-snapshot.outputs.pubished_version }}
+    secrets:
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
