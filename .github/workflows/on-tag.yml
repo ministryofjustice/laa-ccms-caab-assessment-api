@@ -32,10 +32,10 @@ jobs:
       java_distribution: 'temurin'
       build_command: 'assemble'
       publish_package: 'true'
-      jacoco_coverage_enabled: 'false'
       junit_results: 'false'
       junit_report: 'false'
       checkstyle_report: 'false'
+      jacoco_coverage_report: 'false'
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
 
