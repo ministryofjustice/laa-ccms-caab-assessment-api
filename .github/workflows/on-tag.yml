@@ -14,7 +14,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   set-short-repo-name:
@@ -27,6 +26,8 @@ jobs:
 
   assemble-and-publish-snapshot:
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@story/ccmspui-35-common-workflows
+    permissions:
+      packages: write
     with:
       java_version: 21
       java_distribution: 'temurin'
