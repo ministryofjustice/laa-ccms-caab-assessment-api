@@ -57,6 +57,9 @@ jobs:
   ecr-publish-image:
     needs: [ set-short-repo-name, build-test-publish ]
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/ecr-publish-image.yml@story/ccmspui-35-common-workflows
+    permissions:
+      contents: read
+      id-token: write
     with:
       java_version: 21
       java_distribution: 'temurin'
