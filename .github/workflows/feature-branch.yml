@@ -23,6 +23,7 @@ jobs:
     outputs:
       feature_version: ${{ steps.get-feature-version.outputs.feature_version }}
     steps:
+      - uses: actions/checkout@v4
       - uses: ministryofjustice/laa-ccms-common-workflows/.github/actions/remove-prefix@story/ccmspui-35-common-workflows
         id: get-feature-name
         with:
