@@ -59,7 +59,7 @@ jobs:
     with:
       java_version: 21
       java_distribution: 'temurin'
-      image_version: ${{ needs.set-short-repo-name.outputs.result }}-${{ needs.assemble-and-publish-snapshot.outputs.pubished_version }}
+      image_version: ${{ needs.set-short-repo-name.outputs.result }}-${{ needs.assemble-and-publish-snapshot.outputs.pubished_artifact_version }}
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
       ecr_repository: ${{ vars.ECR_REPOSITORY }}
@@ -67,14 +67,14 @@ jobs:
       ecr_role_to_assume: ${{ secrets.ECR_ROLE_TO_ASSUME }}
 
   update-helm-chart:
-    needs: [ set-short-repo-name, build-test-publish, ecr-publish-image ]
+    needs: [ ecr-publish-image ]
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/update-helm-chart.yml@story/ccmspui-35-common-workflows
     with:
       helm_charts_repository: 'laa-ccms-caab-helm-charts'
       helm_charts_branch: 'development'
       service_name: 'laa-ccms-caab-service'
       subchart_name: 'caab-assessment-api'
-      application_version: ${{ needs.set-short-repo-name.outputs.result }}-${{ needs.build-test-publish.outputs.pubished_version }}
+      application_version: ${{ needs.ecr-publish-image.outputs.published_image_version }}
       feature_branch: ${{ github.ref_name }}
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
