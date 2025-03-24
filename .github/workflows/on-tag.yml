@@ -50,7 +50,7 @@ jobs:
     with:
       java_version: 21
       java_distribution: 'temurin'
-      image_version: ${{ needs.set-short-repo-name.outputs.result }}-${{ needs.assemble-and-publish-snapshot.outputs.published_artifact_version }}
+      image_version: ${{ format('{0}-{1}', needs.set-short-repo-name.outputs.result, needs.assemble-and-publish-snapshot.outputs.published_artifact_version) }}
       jar_subproject: 'assessment-service'
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
