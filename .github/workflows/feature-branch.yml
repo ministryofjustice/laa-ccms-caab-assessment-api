@@ -65,6 +65,7 @@ jobs:
       java_version: 21
       java_distribution: 'temurin'
       image_version: ${{ needs.set-short-repo-name.outputs.result }}-${{ needs.assemble-and-publish-snapshot.outputs.pubished_artifact_version }}
+      jar_subproject: 'assessment-service'
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
       ecr_repository: ${{ vars.ECR_REPOSITORY }}
