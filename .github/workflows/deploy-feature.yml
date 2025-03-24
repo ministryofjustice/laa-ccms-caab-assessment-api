@@ -86,4 +86,4 @@ jobs:
       application_version: ${{ needs.ecr-publish-image.outputs.published_image_version }}
       feature_branch: ${{ github.ref_name }}
     secrets:
-      gh_token: ${{ secrets.GITHUB_TOKEN }}
+      gh_token: ${{ secrets.REPO_TOKEN }}

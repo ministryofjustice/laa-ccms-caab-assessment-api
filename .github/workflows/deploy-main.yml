@@ -18,8 +18,11 @@ permissions:
 jobs:
   set-short-repo-name:
     runs-on: ubuntu-latest
+    outputs:
+      short_repo_name: ${{ steps.get-short-repo-name.outputs.result }}
     steps:
       - uses: ministryofjustice/laa-ccms-common-workflows/.github/actions/remove-prefix.yml@story/ccmspui-35-common-workflows
+        id: get-short-repo-name
         with:
           string: ${{ github.event.repository.name }}
           prefix: '*laa-ccms-'
@@ -50,7 +53,7 @@ jobs:
     with:
       java_version: 21
       java_distribution: 'temurin'
-      image_version: ${{ format('{0}-{1}', needs.set-short-repo-name.outputs.result, needs.assemble-and-publish-snapshot.outputs.published_artifact_version) }}
+      image_version: ${{ format('{0}-{1}', needs.set-short-repo-name.outputs.short_repo_name, needs.assemble-and-publish-snapshot.outputs.published_artifact_version) }}
       jar_subproject: 'assessment-service'
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
@@ -68,4 +71,4 @@ jobs:
       subchart_name: 'caab-assessment-api'
       application_version: ${{ needs.ecr-publish-image.outputs.published_image_version }}
     secrets:
-      gh_token: ${{ secrets.GITHUB_TOKEN }}
+      gh_token: ${{ secrets.REPO_TOKEN }}
