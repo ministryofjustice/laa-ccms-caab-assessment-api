@@ -1,4 +1,4 @@
-name: CI feature branch and deploy
+name: Deploy feature
 
 on:
   push:
@@ -12,8 +12,11 @@ permissions:
 jobs:
   set-short-repo-name:
     runs-on: ubuntu-latest
+    outputs:
+      short_repo_name: ${{ steps.get-short-repo-name.outputs.result }}
     steps:
       - uses: ministryofjustice/laa-ccms-common-workflows/.github/actions/remove-prefix@story/ccmspui-35-common-workflows
+        id: get-short-repo-name
         with:
           string: ${{ github.event.repository.name }}
           prefix: '*laa-ccms-'
@@ -64,7 +67,7 @@ jobs:
     with:
       java_version: 21
       java_distribution: 'temurin'
-      image_version: ${{ format('{0}-{1}', needs.set-short-repo-name.outputs.result, needs.build-test-publish.outputs.published_artifact_version) }}
+      image_version: ${{ format('{0}-{1}', needs.set-short-repo-name.outputs.short_repo_name, needs.build-test-publish.outputs.published_artifact_version) }}
       jar_subproject: 'assessment-service'
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
