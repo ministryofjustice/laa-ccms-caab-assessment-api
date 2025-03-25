@@ -1,3 +1,10 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
 name: Deploy feature
 
 on:
@@ -10,18 +17,7 @@ permissions:
   contents: read
 
 jobs:
-  set-short-repo-name:
-    runs-on: ubuntu-latest
-    outputs:
-      short_repo_name: ${{ steps.get-short-repo-name.outputs.result }}
-    steps:
-      - uses: ministryofjustice/laa-ccms-common-workflows/.github/actions/remove-prefix@story/ccmspui-35-common-workflows
-        id: get-short-repo-name
-        with:
-          string: ${{ github.event.repository.name }}
-          prefix: '*laa-ccms-'
-
-  set-version-override:
+  define-feature-version:
     runs-on: ubuntu-latest
     outputs:
       feature_version: ${{ steps.get-feature-version.outputs.feature_version }}
@@ -39,18 +35,16 @@ jobs:
           echo "feature_version=${{ steps.get-feature-name.outputs.result }}-${COMMIT_HASH}-SNAPSHOT" >> $GITHUB_OUTPUT
           echo "Feature version: ${{ steps.get-feature-name.outputs.result }}-${COMMIT_HASH}-SNAPSHOT"
 
-  build-test-publish:
-    needs: [ set-version-override ]
+  build-and-publish-snapshot:
+    needs: [ define-feature-version ]
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@story/ccmspui-35-common-workflows
     permissions:
       contents: read
       packages: write
     with:
-      java_version: 21
-      java_distribution: 'temurin'
       integration_test_task: "integrationTest --tests '*IntegrationTest'"
       publish_package: 'true'
-      override_version: ${{ needs.set-version-override.outputs.feature_version }}
+      override_version: ${{ needs.define-feature-version.outputs.feature_version }}
       junit_results_path: 'assessment-service/build/test-results'
       junit_report_path: 'assessment-service/build/reports/tests'
       checkstyle_report_path: 'assessment-service/build/reports/checkstyle'
@@ -59,15 +53,13 @@ jobs:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
 
   ecr-publish-image:
-    needs: [ set-short-repo-name, build-test-publish ]
+    needs: [ build-and-publish-snapshot ]
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/ecr-publish-image.yml@story/ccmspui-35-common-workflows
     permissions:
       contents: read
       id-token: write
     with:
-      java_version: 21
-      java_distribution: 'temurin'
-      image_version: ${{ format('{0}-{1}', needs.set-short-repo-name.outputs.short_repo_name, needs.build-test-publish.outputs.published_artifact_version) }}
+      image_version: ${{ format('{0}-{1}', vars.IMAGE_PREFIX, needs.build-and-publish-snapshot.outputs.published_artifact_version) }}
       jar_subproject: 'assessment-service'
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}

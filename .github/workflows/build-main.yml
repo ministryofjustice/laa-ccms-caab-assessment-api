@@ -12,18 +12,14 @@ on:
     branches: [ main ]
     types: [ closed ]
 
-permissions:
-  contents: read
-
 jobs:
   build-and-publish-release:
     if: ${{ github.event.pull_request.merged == true }}
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@story/ccmspui-35-common-workflows
     permissions:
+      contents: read
       packages: write
     with:
-      java_version: 21
-      java_distribution: 'temurin'
       integration_test_task: "integrationTest --tests '*IntegrationTest'"
       create_tag: 'true'
       junit_results_path: 'assessment-service/build/test-results'
@@ -37,10 +33,9 @@ jobs:
     if: ${{ github.event.pull_request.merged == true }}
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/snyk-vulnerability-report.yml@story/ccmspui-35-common-workflows
     permissions:
+      contents: read
       security-events: write
     with:
-      java_version: 21
-      java_distribution: 'temurin'
       snyk_organisation: 'legal-aid-agency'
       snyk_test_exclude: 'build,generated'
       snyk_target_reference: 'main'
