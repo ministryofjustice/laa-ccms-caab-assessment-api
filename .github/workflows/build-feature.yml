@@ -15,7 +15,6 @@ on:
       - 'feature-test/*'
 
 jobs:
-
   build-and-publish-snapshot:
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@story/ccmspui-35-common-workflows
     permissions:

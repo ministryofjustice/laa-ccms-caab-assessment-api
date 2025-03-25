@@ -32,7 +32,7 @@ jobs:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
 
   ecr-publish-image:
-    needs: [ assemble-and-publish]
+    needs: [ assemble-and-publish ]
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/ecr-publish-image.yml@story/ccmspui-35-common-workflows
     permissions:
       contents: read
