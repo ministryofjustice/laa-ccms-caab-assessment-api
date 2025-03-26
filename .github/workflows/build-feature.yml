@@ -16,7 +16,7 @@ on:
 
 jobs:
   build-and-publish-snapshot:
-    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@story/ccmspui-35-common-workflows
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@v1
     permissions:
       contents: read
       packages: write
@@ -32,7 +32,7 @@ jobs:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
 
   vulnerability-scan:
-    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/snyk-vulnerability-scan.yml@story/ccmspui-35-common-workflows
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/snyk-vulnerability-scan.yml@v1
     permissions:
       contents: read
     with:
