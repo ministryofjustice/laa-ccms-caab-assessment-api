@@ -1,0 +1,44 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: Build feature
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - 'feature-dev/*'
+      - 'feature-test/*'
+
+jobs:
+  build-and-publish-snapshot:
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@v1
+    permissions:
+      contents: read
+      packages: write
+    with:
+      integration_test_task: "integrationTest --tests '*IntegrationTest'"
+      publish_package: 'true'
+      is_snapshot: 'true'
+      junit_results_path: 'assessment-service/build/test-results'
+      junit_report_path: 'assessment-service/build/reports/tests'
+      checkstyle_report_path: 'assessment-service/build/reports/checkstyle'
+      jacoco_coverage_report_path: 'assessment-service/build/reports/jacoco'
+    secrets:
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
+
+  vulnerability-scan:
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/snyk-vulnerability-scan.yml@v1
+    permissions:
+      contents: read
+    with:
+      snyk_organisation: 'legal-aid-agency'
+      snyk_test_exclude: 'build,generated'
+      snyk_target_reference: 'main'
+    secrets:
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
+      snyk_token: ${{ secrets.SNYK_TOKEN }}
