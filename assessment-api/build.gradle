@@ -6,7 +6,7 @@ apply plugin: 'uk.gov.laa.ccms.springboot.laa-ccms-spring-boot-gradle-plugin'
 
 dependencies {
 
-    implementation 'io.swagger.core.v3:swagger-annotations:2.2.28'
+    implementation 'io.swagger.core.v3:swagger-annotations:2.2.29'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.data:spring-data-commons'
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
