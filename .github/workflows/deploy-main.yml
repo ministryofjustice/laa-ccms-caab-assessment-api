@@ -19,7 +19,7 @@ jobs:
   assemble-and-publish:
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@v1
     permissions:
-      contents: read
+      contents: write
       packages: write
     with:
       build_command: 'assemble'
