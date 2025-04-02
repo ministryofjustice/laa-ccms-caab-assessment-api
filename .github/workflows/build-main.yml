@@ -13,22 +13,10 @@ on:
     types: [ closed ]
 
 jobs:
-  setup-token:
-    runs-on: ubuntu-latest
-    outputs:
-      app_token: ${{ steps.get_workflow_token.outputs.token }}
-    steps:
-      - name: Get Token
-        id: get_workflow_token
-        uses: peter-murray/workflow-application-token-action@v4
-        with:
-          application_id: ${{ vars.LAA_CCMS_CAAB_SERVICE_APP_ID }}
-          application_private_key: ${{ secrets.LAA_CCMS_CAAB_SERVICE_KEY }}
 
   build-and-publish-release:
     if: ${{ github.event.pull_request.merged == true }}
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@v1
-    needs: [ setup-token ]
     permissions:
       contents: write
       packages: write
@@ -39,6 +27,9 @@ jobs:
       junit_report_path: 'assessment-service/build/reports/tests'
       checkstyle_report_path: 'assessment-service/build/reports/checkstyle'
       jacoco_coverage_report_path: 'assessment-service/build/reports/jacoco'
+      application_id: ${{ vars.LAA_CCMS_CAAB_SERVICE_APP_ID }}
+      application_private_key: ${{ secrets.LAA_CCMS_CAAB_SERVICE_KEY }}
+      application_organisation: 'ministryofjustice'
     secrets:
       gh_token: ${{ needs.setup-token.outputs.app_token }}
 
