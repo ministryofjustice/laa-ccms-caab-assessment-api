@@ -27,11 +27,10 @@ jobs:
       junit_report_path: 'assessment-service/build/reports/tests'
       checkstyle_report_path: 'assessment-service/build/reports/checkstyle'
       jacoco_coverage_report_path: 'assessment-service/build/reports/jacoco'
+    secrets:
       application_id: ${{ vars.LAA_CCMS_CAAB_SERVICE_APP_ID }}
       application_private_key: ${{ secrets.LAA_CCMS_CAAB_SERVICE_KEY }}
       application_organisation: 'ministryofjustice'
-    secrets:
-      gh_token: ${{ needs.setup-token.outputs.app_token }}
 
   vulnerability-report:
     if: ${{ github.event.pull_request.merged == true }}
