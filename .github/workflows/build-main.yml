@@ -27,8 +27,9 @@ jobs:
       junit_report_path: 'assessment-service/build/reports/tests'
       checkstyle_report_path: 'assessment-service/build/reports/checkstyle'
       jacoco_coverage_report_path: 'assessment-service/build/reports/jacoco'
+      github_bot_username: 'laa-ccms-caab-service'
     secrets:
-      gh_token: ${{ needs.setup-token.outputs.app_token }}
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
       application_id: ${{ vars.LAA_CCMS_CAAB_SERVICE_APP_ID }}
       application_private_key: ${{ secrets.LAA_CCMS_CAAB_SERVICE_KEY }}
       application_organisation: 'ministryofjustice'
