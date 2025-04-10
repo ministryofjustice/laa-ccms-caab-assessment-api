@@ -35,7 +35,7 @@ laa:
               ]
           }
       ]'
-      unprotected-uris: [ "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/favicon.ico", "/open-api-specification.yml"]
+      unprotected-uris: [ "/actuator/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/favicon.ico", "/open-api-specification.yml"]
     metrics:
       mappings-exposed: true
       env-exposed: true

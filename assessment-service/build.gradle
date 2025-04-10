@@ -9,7 +9,10 @@ dependencies {
     runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
     //Enable access token authentication
     implementation 'uk.gov.laa.ccms.springboot:laa-ccms-spring-boot-starter-auth'
-    implementation 'uk.gov.laa.ccms.springboot:laa-ccms-spring-boot-starter-metrics'
+
+    //Metrics
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 
     //Enable Swagger UI
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
