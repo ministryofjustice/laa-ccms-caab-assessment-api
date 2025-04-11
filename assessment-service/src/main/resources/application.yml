@@ -14,8 +14,23 @@ spring:
       ddl-auto: none
     open-in-view: false
 
-laa.ccms.springboot.starter.auth:
-  authentication-header: "Authorization"
-  authorized-clients: ${AUTHORIZED_CLIENTS}
-  authorized-roles: ${AUTHORIZED_ROLES}
-  unprotected-uris: ${UNPROTECTED_URIS}
+laa:
+  ccms:
+    springboot.starter.auth:
+      authentication-header: "Authorization"
+      authorized-clients: ${AUTHORIZED_CLIENTS}
+      authorized-roles: ${AUTHORIZED_ROLES}
+      unprotected-uris: ${UNPROTECTED_URIS}
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - metrics
+          - prometheus
