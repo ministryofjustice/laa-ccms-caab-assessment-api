@@ -9,10 +9,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 import org.springframework.test.context.jdbc.SqlMergeMode.MergeMode;
-import uk.gov.laa.ccms.caab.assessment.AssessmentApplication;
 import uk.gov.laa.ccms.caab.assessment.OracleContainerIntegrationTest;
 import static uk.gov.laa.ccms.caab.assessment.audit.AuditorAwareImpl.currentUserHolder;
 
@@ -41,7 +39,7 @@ import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
 @Sql(executionPhase = AFTER_TEST_CLASS, scripts = "/sql/assessment_tables_drop_schema.sql")
 @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "/sql/delete_data.sql")
 @SqlMergeMode(MergeMode.MERGE)
-public class BaseAssessmentControllerIntegrationTest extends
+public class AssessmentControllerIntegrationTest extends
     OracleContainerIntegrationTest {
 
   @Autowired
