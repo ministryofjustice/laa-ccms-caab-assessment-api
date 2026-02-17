@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -36,8 +37,7 @@ import uk.gov.laa.ccms.caab.assessment.service.AssessmentService;
 import java.util.ArrayList;
 import java.util.List;
 
-@ExtendWith(SpringExtension.class)
-@WebAppConfiguration
+@ExtendWith(MockitoExtension.class)
 class AssessmentControllerTest {
 
   @Mock
