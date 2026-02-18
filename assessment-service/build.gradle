@@ -1,4 +1,10 @@
-apply plugin: 'uk.gov.laa.ccms.springboot.laa-ccms-spring-boot-gradle-plugin'
+apply plugin: 'uk.gov.laa.springboot.laa-spring-boot-gradle-plugin'
+
+configurations {
+    mockitoAgent {
+        transitive = false
+    }
+}
 
 dependencies {
     implementation project(':assessment-api')
@@ -8,7 +14,7 @@ dependencies {
     implementation 'io.micrometer:micrometer-tracing-bridge-brave'
     runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
     //Enable access token authentication
-    implementation 'uk.gov.laa.ccms.springboot:laa-ccms-spring-boot-starter-auth'
+    implementation 'uk.gov.laa.springboot:laa-spring-boot-starter-auth'
 
     //Metrics
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -24,15 +30,23 @@ dependencies {
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 
     //Used for integration tests
     testImplementation 'org.testcontainers:testcontainers'
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.testcontainers:oracle-free'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers-oracle-free'
+
+    mockitoAgent "org.mockito:mockito-core"
 }
 
-test {
+tasks.withType(Test).configureEach {
     useJUnitPlatform()
+
+    jvmArgs(
+            "-javaagent:${configurations.mockitoAgent.asPath}",
+            "-Xshare:off"
+    )
 
     finalizedBy jacocoTestReport
 }
