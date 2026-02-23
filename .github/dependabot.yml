@@ -7,14 +7,14 @@ version: 2
 registries:
   spring-boot-common-github-packages:
     type: maven-repository
-    url: https://maven.pkg.github.com/ministryofjustice/laa-ccms-spring-boot-common
+    url: https://maven.pkg.github.com/ministryofjustice/laa-spring-boot-common
     username: PhilDigitalJustice
     password: ${{ secrets.REPO_TOKEN }}
 updates:
   - package-ecosystem: "gradle" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
-      interval: "weekly"
+      interval: "daily"
     registries: "*"
     groups:
       gradle-updates:
@@ -26,7 +26,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
     groups:
       github-actions:
         patterns:
