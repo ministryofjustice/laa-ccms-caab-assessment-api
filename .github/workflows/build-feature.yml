@@ -40,6 +40,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      security-events: write
     with:
       java_version: '25'
       java_distribution: 'corretto'
@@ -51,3 +52,4 @@ jobs:
       ecr_repository: ${{ vars.ECR_REPOSITORY }}
       ecr_region: ${{ vars.ECR_REGION }}
       ecr_role_to_assume: ${{ secrets.ECR_ROLE_TO_ASSUME }}
+      snyk_token: ${{ secrets.snyk_token }}
