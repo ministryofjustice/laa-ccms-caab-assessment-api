@@ -1,12 +1,12 @@
 plugins {
-    id 'org.openapi.generator' version '7.21.0'
+    id 'org.openapi.generator' version '7.22.0'
 }
 
 apply plugin: 'uk.gov.laa.springboot.laa-spring-boot-gradle-plugin'
 
 dependencies {
 
-    implementation 'io.swagger.core.v3:swagger-annotations:2.2.48'
+    implementation 'io.swagger.core.v3:swagger-annotations:2.2.49'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.data:spring-data-commons'
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
