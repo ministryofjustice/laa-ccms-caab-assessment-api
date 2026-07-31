@@ -9,8 +9,32 @@ configurations {
 configurations.configureEach {
     resolutionStrategy.eachDependency { details ->
         if (details.requested.group == 'org.apache.tomcat.embed') {
-            details.useVersion '11.0.22'
-            details.because 'Temporary Snyk override until upgraded in Spring Boot'
+            details.useVersion '11.0.23'
+            details.because 'Temporary override to remediate vulnerability'
+        }
+        if (details.requested.group == 'ch.qos.logback') {
+            details.useVersion '1.5.36'
+            details.because 'Temporary override to remediate vulnerability'
+        }
+        if (details.requested.group == 'org.apache.logging.log4j') {
+            details.useVersion '2.25.5'
+            details.because 'Temporary override to remediate vulnerability'
+        }
+        if (details.requested.group == 'com.fasterxml.jackson.core' && details.requested.name == 'jackson-databind') {
+            details.useVersion '2.22.1'
+            details.because 'Temporary override to remediate vulnerability'
+        }
+        if (details.requested.group == 'com.fasterxml.jackson.core' && details.requested.name == 'jackson-annotations') {
+            details.useVersion '2.22'
+            details.because 'Temporary override to remediate vulnerability'
+        }
+        if (details.requested.group == 'org.apache.httpcomponents.core5') {
+            details.useVersion '5.4.3'
+            details.because 'Temporary override to remediate vulnerability'
+        }
+        if (details.requested.group == 'tools.jackson.core') {
+            details.useVersion '3.2.1'
+            details.because 'Temporary override to remediate vulnerability'
         }
     }
 }
