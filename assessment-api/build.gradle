@@ -2,7 +2,7 @@ plugins {
     id 'org.openapi.generator' version '7.24.0'
 }
 
-apply plugin: 'uk.gov.laa.springboot.laa-spring-boot-gradle-plugin'
+apply plugin: 'uk.gov.justice.service.laa.laa-spring-boot-gradle-plugin'
 
 dependencies {
 
