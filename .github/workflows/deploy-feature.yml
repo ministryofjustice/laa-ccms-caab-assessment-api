@@ -42,7 +42,7 @@ jobs:
       java_version: '25'
       java_distribution: 'corretto'
       integration_test_task: "integrationTest --tests '*IntegrationTest'"
-      publish_package: 'true'
+      release_type: 'snapshot'
       override_version: ${{ needs.define-feature-version.outputs.feature_version }}
       junit_results_path: 'assessment-service/build/test-results'
       junit_report_path: 'assessment-service/build/reports/tests'
