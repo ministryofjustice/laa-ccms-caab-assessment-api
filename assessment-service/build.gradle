@@ -1,4 +1,4 @@
-apply plugin: 'uk.gov.laa.springboot.laa-spring-boot-gradle-plugin'
+apply plugin: 'uk.gov.justice.service.laa.laa-spring-boot-gradle-plugin'
 
 configurations {
     mockitoAgent {
@@ -46,8 +46,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'io.micrometer:micrometer-tracing-bridge-brave'
     runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
+
     //Enable access token authentication
-    implementation 'uk.gov.laa.springboot:laa-spring-boot-starter-auth'
+    implementation 'uk.gov.justice.service.laa:laa-spring-boot-starter-auth'
 
     //Metrics
     implementation 'org.springframework.boot:spring-boot-starter-actuator'

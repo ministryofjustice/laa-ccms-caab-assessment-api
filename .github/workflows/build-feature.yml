@@ -1,9 +1,6 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+# This workflow is part of the application's build and deployment pipeline.
+# The workflow delegates these activities to reusable workflows maintained in
+# https://github.com/ministryofjustice/laa-ccms-common-workflows.
 
 name: Build feature
 
@@ -24,8 +21,7 @@ jobs:
       java_version: '25'
       java_distribution: 'corretto'
       integration_test_task: "integrationTest --tests '*IntegrationTest'"
-      publish_package: 'true'
-      is_snapshot: 'true'
+      release_type: 'snapshot'
       junit_results_path: 'assessment-service/build/test-results'
       junit_report_path: 'assessment-service/build/reports/tests'
       checkstyle_report_path: 'assessment-service/build/reports/checkstyle'
