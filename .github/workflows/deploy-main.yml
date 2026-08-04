@@ -1,3 +1,7 @@
+# This workflow is part of the application's build and deployment pipeline.
+# The workflow delegates these activities to reusable workflows maintained in
+# https://github.com/ministryofjustice/laa-ccms-common-workflows.
+
 name: Deploy main
 
 on:
