@@ -2,7 +2,6 @@ package uk.gov.laa.ccms.caab.assessment.advice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import org.mockito.junit.jupiter.MockitoExtension;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -13,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,20 +22,19 @@ import uk.gov.laa.ccms.caab.assessment.audit.AuditorAwareImpl;
 @ExtendWith(MockitoExtension.class)
 class AuditAdviceTest {
 
-  @Mock
-  private AuditorAwareImpl auditorAware;
+  @Mock private AuditorAwareImpl auditorAware;
 
-  @InjectMocks
-  private AuditAdvice auditAdvice;
+  @InjectMocks private AuditAdvice auditAdvice;
 
   private MockMvc mockMvc;
 
   @BeforeEach
   public void setup() {
     // Setup MockMvc with the AuditAdvice
-    mockMvc = MockMvcBuilders.standaloneSetup(new MockController())
-        .setControllerAdvice(auditAdvice)
-        .build();
+    mockMvc =
+        MockMvcBuilders.standaloneSetup(new MockController())
+            .setControllerAdvice(auditAdvice)
+            .build();
   }
 
   @AfterEach
@@ -48,8 +47,8 @@ class AuditAdviceTest {
   void setCurrentUserHolderIfAvailable() throws Exception {
     String caabUserLoginId = "testUser";
 
-    mockMvc.perform(get("/test")
-            .header("Caab-User-Login-Id", caabUserLoginId))
+    mockMvc
+        .perform(get("/test").header("Caab-User-Login-Id", caabUserLoginId))
         .andDo(print())
         .andExpect(status().isOk());
 
@@ -58,7 +57,8 @@ class AuditAdviceTest {
 
   @Test
   void currentUserHolderIsNullWhenCaabUserLoginIdNotProvided() throws Exception {
-    mockMvc.perform(get("/test")) // No Caab-User-Login-Id header
+    mockMvc
+        .perform(get("/test")) // No Caab-User-Login-Id header
         .andDo(print())
         .andExpect(status().isOk());
 

@@ -12,9 +12,7 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Represents an Oracle Intelligence Advisor Checkpoint.
- */
+/** Represents an Oracle Intelligence Advisor Checkpoint. */
 @Entity
 @Table(name = "XXCCMS_OPA_CHECKPOINT", schema = "XXCCMS_PUI")
 @Getter
@@ -32,12 +30,8 @@ public class OpaCheckpoint {
   @Lob
   private byte[] interviewData;
 
-  @OneToOne(cascade = {
-      CascadeType.PERSIST,
-      CascadeType.MERGE
-  })
+  @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
   @MapsId
   @JoinColumn(name = "RESUME_ID")
   private OpaSession opaSession;
-
 }

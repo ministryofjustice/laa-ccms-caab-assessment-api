@@ -1,4 +1,15 @@
 apply plugin: 'uk.gov.justice.service.laa.laa-spring-boot-gradle-plugin'
+apply plugin: "com.diffplug.spotless"
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+        importOrder()
+        removeUnusedImports()
+        cleanthat()
+        googleJavaFormat('1.34.1')
+    }
+}
 
 configurations {
     mockitoAgent {

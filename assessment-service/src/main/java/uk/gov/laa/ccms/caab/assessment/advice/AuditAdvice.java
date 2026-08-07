@@ -6,9 +6,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-/**
- * Controller advice class responsible for setting the current user holder if available.
- */
+/** Controller advice class responsible for setting the current user holder if available. */
 @ControllerAdvice
 public class AuditAdvice {
 

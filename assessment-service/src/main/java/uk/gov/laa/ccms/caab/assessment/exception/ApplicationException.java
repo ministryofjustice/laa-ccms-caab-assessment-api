@@ -3,9 +3,7 @@ package uk.gov.laa.ccms.caab.assessment.exception;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-/**
- * The exception thrown for specific application exceptions.
- */
+/** The exception thrown for specific application exceptions. */
 @Getter
 public class ApplicationException extends RuntimeException {
 
@@ -17,7 +15,7 @@ public class ApplicationException extends RuntimeException {
    * The exception thrown for specific application exceptions.
    *
    * @param message the detail message. The detail message is saved for later retrieval by the
-   *                {@link #getMessage()} method.
+   *     {@link #getMessage()} method.
    */
   public ApplicationException(String message, HttpStatus httpStatus) {
     super(message);
