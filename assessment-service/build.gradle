@@ -1,32 +1,6 @@
 apply plugin: 'uk.gov.justice.service.laa.laa-spring-boot-gradle-plugin'
 apply plugin: "com.diffplug.spotless"
 
-spotless {
-    java {
-        target 'src/*/java/**/*.java'
-        importOrder()
-        removeUnusedImports()
-        cleanthat()
-        googleJavaFormat('1.34.1')
-    }
-}
-
-/**
- * Automatically installs the git pre-commit hook to run spotlessApply.
- */
-tasks.register('installGitHooks', Copy) {
-    from "../scripts/pre-commit"
-    into "${rootProject.rootDir}/.git/hooks"
-
-    // Gradle 9.x replacement for fileMode
-    filePermissions {
-        unix(0755)
-    }
-}
-
-// Linked to compileJava so it installs on the first build
-compileJava.dependsOn installGitHooks
-
 configurations {
     mockitoAgent {
         transitive = false
@@ -127,3 +101,29 @@ jacocoTestCoverageVerification {
         }))
     }
 }
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+        importOrder()
+        removeUnusedImports()
+        cleanthat()
+        googleJavaFormat('1.34.1')
+    }
+}
+
+/**
+ * Automatically installs the git pre-commit hook to run spotlessApply.
+ */
+tasks.register('installGitHooks', Copy) {
+    from "../scripts/pre-commit"
+    into "${rootProject.rootDir}/.git/hooks"
+
+    // Gradle 9.x replacement for fileMode
+    filePermissions {
+        unix(0755)
+    }
+}
+
+// Linked to compileJava so it installs on the first build
+compileJava.dependsOn installGitHooks
