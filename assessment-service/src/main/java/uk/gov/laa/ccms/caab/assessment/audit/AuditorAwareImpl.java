@@ -1,6 +1,5 @@
 package uk.gov.laa.ccms.caab.assessment.audit;
 
-
 import java.util.Optional;
 import org.springframework.data.domain.AuditorAware;
 
@@ -16,5 +15,4 @@ public class AuditorAwareImpl implements AuditorAware<String> {
   public Optional<String> getCurrentAuditor() {
     return Optional.of(currentUserHolder.get());
   }
-
 }

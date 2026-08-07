@@ -13,9 +13,7 @@ import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetails;
 import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.service.AssessmentService;
 
-/**
- * Controller handling assessment requests.
- */
+/** Controller handling assessment requests. */
 @RestController
 @RequiredArgsConstructor
 public class AssessmentController implements AssessmentsApi {
@@ -29,8 +27,7 @@ public class AssessmentController implements AssessmentsApi {
    * @return ResponseEntity containing the requested AssessmentDetail.
    */
   @Override
-  public ResponseEntity<AssessmentDetail> getAssessment(
-      final Long assessmentId) {
+  public ResponseEntity<AssessmentDetail> getAssessment(final Long assessmentId) {
 
     return ResponseEntity.ok(assessmentService.getAssessment(assessmentId));
   }
@@ -51,33 +48,33 @@ public class AssessmentController implements AssessmentsApi {
       final String caseReferenceNumber,
       final String status) {
 
-    AssessmentDetail criteria = new AssessmentDetail()
-        .providerId(providerId)
-        .caseReferenceNumber(caseReferenceNumber)
-        .status(status);
+    AssessmentDetail criteria =
+        new AssessmentDetail()
+            .providerId(providerId)
+            .caseReferenceNumber(caseReferenceNumber)
+            .status(status);
 
     return ResponseEntity.ok(assessmentService.getAssessments(criteria, name));
   }
 
   @Override
   public ResponseEntity<Void> createAssessment(
-      final String caabUserLoginId,
-      final AssessmentDetail assessment) {
+      final String caabUserLoginId, final AssessmentDetail assessment) {
 
     Long assessmentId = assessmentService.createAssessment(assessment);
 
-    URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
-        .path("/{id}")
-        .buildAndExpand(assessmentId)
-        .toUri();
+    URI uri =
+        ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(assessmentId)
+            .toUri();
 
     return ResponseEntity.created(uri).build();
   }
 
   @Override
   public ResponseEntity<Void> deleteAssessmentCheckpoint(
-      final Long assessmentId,
-      final String caabUserLoginId) {
+      final Long assessmentId, final String caabUserLoginId) {
 
     assessmentService.deleteCheckpoint(assessmentId);
 
@@ -93,7 +90,6 @@ public class AssessmentController implements AssessmentsApi {
    * @param name the list of names associated with the assessments.
    * @param status the status of the assessments to be deleted.
    * @return ResponseEntity representing an HTTP 204 No Content status.
-   *
    */
   @Override
   public ResponseEntity<Void> deleteAssessments(
@@ -103,10 +99,11 @@ public class AssessmentController implements AssessmentsApi {
       final List<String> name,
       final String status) {
 
-    AssessmentDetail criteria = new AssessmentDetail()
-        .providerId(providerId)
-        .caseReferenceNumber(caseReferenceNumber)
-        .status(status);
+    AssessmentDetail criteria =
+        new AssessmentDetail()
+            .providerId(providerId)
+            .caseReferenceNumber(caseReferenceNumber)
+            .status(status);
 
     assessmentService.deleteAssessments(criteria, name);
 
@@ -123,9 +120,7 @@ public class AssessmentController implements AssessmentsApi {
    */
   @Override
   public ResponseEntity<Void> patchAssessment(
-      final Long assessmentId,
-      final String caabUserLoginId,
-      final PatchAssessmentDetail patch) {
+      final Long assessmentId, final String caabUserLoginId, final PatchAssessmentDetail patch) {
 
     assessmentService.patchAssessment(assessmentId, patch);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -141,15 +136,9 @@ public class AssessmentController implements AssessmentsApi {
    */
   @Override
   public ResponseEntity<Void> updateAssessment(
-      final Long assessmentId,
-      final String caabUserLoginId,
-      final AssessmentDetail assessment) {
+      final Long assessmentId, final String caabUserLoginId, final AssessmentDetail assessment) {
 
     assessmentService.updateAssessment(assessmentId, assessment);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
-
-
-
-
 }

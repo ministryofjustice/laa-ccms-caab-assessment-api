@@ -4,21 +4,18 @@ import java.util.Arrays;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Enum representing the mapping between session assessment types and log assessment types.
- */
+/** Enum representing the mapping between session assessment types and log assessment types. */
 @Getter
 @Slf4j
 public enum OpaAssessmentLogMap {
   MEANS("meansAssessment", "MEANS"),
   MEANS_PREPOP("meansAssessment_PREPOP", "MEANS"),
   MERITS("meritsAssessment", "MERITS"),
-  MERITS_PREPOP("meritsAssessment_PREPOP",  "MERITS"),
+  MERITS_PREPOP("meritsAssessment_PREPOP", "MERITS"),
   BILLING("billingAssessment", "BILL"),
   BILLING_PREPOP("billingAssessment_PREPOP", "BILL"),
   POA("poaAssessment", "POA"),
   POA_PREPOP("poaAssessment_PREPOP", "POA");
-
 
   private final String sessionAssessmentType;
   private final String logAssessmentType;
@@ -37,15 +34,15 @@ public enum OpaAssessmentLogMap {
   public static String findLogAssessmentTypeBySessionAssessmentType(
       final String sessionAssessmentType) {
     return Arrays.stream(OpaAssessmentLogMap.values())
-        .filter(assessmentLogMap -> assessmentLogMap.getSessionAssessmentType()
-            .equalsIgnoreCase(sessionAssessmentType))
+        .filter(
+            assessmentLogMap ->
+                assessmentLogMap.getSessionAssessmentType().equalsIgnoreCase(sessionAssessmentType))
         .map(OpaAssessmentLogMap::getLogAssessmentType)
         .findFirst()
-        .orElseGet(() -> {
-          log.warn("Invalid session assessment type: {}", sessionAssessmentType);
-          return null;
-        });
+        .orElseGet(
+            () -> {
+              log.warn("Invalid session assessment type: {}", sessionAssessmentType);
+              return null;
+            });
   }
-
-
 }

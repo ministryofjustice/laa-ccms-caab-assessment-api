@@ -17,15 +17,14 @@ import uk.gov.laa.ccms.caab.assessment.exception.ApplicationException;
 public class GlobalExceptionHandler {
 
   /**
-   * Handles the {@link ApplicationException} by logging the error and returning an
-   * appropriate error response.
+   * Handles the {@link ApplicationException} by logging the error and returning an appropriate
+   * error response.
    *
    * @param e the ApplicationException
    * @return the response entity with the status code and error response body.
    */
   @ExceptionHandler(value = {ApplicationException.class})
-  public ResponseEntity<Object> handleApplicationException(
-      final ApplicationException e) {
+  public ResponseEntity<Object> handleApplicationException(final ApplicationException e) {
 
     Map<String, Object> responseBody = new HashMap<>();
     responseBody.put("error_message", e.getErrorMessage());

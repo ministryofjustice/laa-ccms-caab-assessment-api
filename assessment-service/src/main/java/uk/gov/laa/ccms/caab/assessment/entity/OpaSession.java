@@ -17,9 +17,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-/**
- * Represents an Oracle Intelligence Advisor session.
- */
+/** Represents an Oracle Intelligence Advisor session. */
 @Entity
 @Table(name = "XXCCMS_OPA_SESSION", schema = "XXCCMS_PUI")
 @SequenceGenerator(
@@ -32,64 +30,41 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 public class OpaSession {
 
-  /**
-    * The unique identifier of the session.
-   */
+  /** The unique identifier of the session. */
   @Id
   @GeneratedValue(generator = "XXCCMS_OPASESSION_GENERATED_ID_S")
   private Long id;
 
-  /**
-   * Owner of this session, e.g. the user that performs the assessment.
-   */
-  @Column(
-      name = "OWNER_ID",
-      nullable = false)
+  /** Owner of this session, e.g. the user that performs the assessment. */
+  @Column(name = "OWNER_ID", nullable = false)
   private String ownerId;
 
-  /**
-   * id of the subject in the assessment.
-   */
-  @Column(
-      name = "TARGET_ID",
-      nullable = false)
+  /** id of the subject in the assessment. */
+  @Column(name = "TARGET_ID", nullable = false)
   private String targetId;
 
   /**
    * Name for an assessment with specific goal(s). The gathered information can be used for new
    * inquiries, however it is advisable not to switch to other rulebases with the same data-set.
    */
-  @Column(
-      name = "ASSESSMENT",
-      nullable = false)
+  @Column(name = "ASSESSMENT", nullable = false)
   private String assessment;
 
-  /**
-   * Status of this session.
-   */
-  @Column(
-      name = "STATUS",
-      length = 20)
+  /** Status of this session. */
+  @Column(name = "STATUS", length = 20)
   private String status;
 
-  /**
-   * The Oracle Intelligence Advisor rule base to be used for this session.
-   */
+  /** The Oracle Intelligence Advisor rule base to be used for this session. */
   @OneToMany(
       mappedBy = "opaSession",
       cascade = CascadeType.ALL,
       orphanRemoval = true,
-      fetch = FetchType.EAGER
-  )
+      fetch = FetchType.EAGER)
   private List<OpaListEntity> opaListEntities;
 
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "opaSession")
   private OpaCheckpoint checkpoint;
 
-  /**
-   * audit trail info.
-   */
-  @Embedded
-  private AuditTrail auditTrail = new AuditTrail();
-
+  /** audit trail info. */
+  @Embedded private AuditTrail auditTrail = new AuditTrail();
 }

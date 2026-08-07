@@ -8,9 +8,7 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Represents the OPA Assessment Log.
- */
+/** Represents the OPA Assessment Log. */
 @Entity
 @Table(name = "XXCCMS_OPA_ASSESSMENT_LOG", schema = "XXCCMS_PUI")
 @Getter
@@ -41,6 +39,4 @@ public class OpaAssessmentLog {
 
   @Column(name = "CREATED_BY")
   private String createdBy;
-
 }
-

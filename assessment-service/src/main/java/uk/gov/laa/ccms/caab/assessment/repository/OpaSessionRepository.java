@@ -9,12 +9,10 @@ import uk.gov.laa.ccms.caab.assessment.entity.OpaSession;
  * Repository interface for managing {@link uk.gov.laa.ccms.caab.assessment.entity.OpaSession}
  * entities.
  *
- * <p>This interface provides CRUD (Create, Read, Update, Delete) operations
- * for the {@link uk.gov.laa.ccms.caab.assessment.entity.OpaSession} entity, leveraging the power of
- * Spring Data JPA.
+ * <p>This interface provides CRUD (Create, Read, Update, Delete) operations for the {@link
+ * uk.gov.laa.ccms.caab.assessment.entity.OpaSession} entity, leveraging the power of Spring Data
+ * JPA.
  */
 @Repository
-public interface OpaSessionRepository extends JpaRepository<OpaSession, Long>,
-    JpaSpecificationExecutor<OpaSession> {
-
-}
+public interface OpaSessionRepository
+    extends JpaRepository<OpaSession, Long>, JpaSpecificationExecutor<OpaSession> {}

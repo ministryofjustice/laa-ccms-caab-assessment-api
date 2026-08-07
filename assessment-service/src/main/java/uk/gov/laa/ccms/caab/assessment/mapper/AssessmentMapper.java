@@ -23,11 +23,8 @@ import uk.gov.laa.ccms.caab.assessment.model.AssessmentEntityTypeDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentRelationshipDetail;
 import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
 
-/**
- * Mapper for mapping between assessment entities and models.
- */
-@Mapper(componentModel = "spring",
-    uses = CommonMapper.class)
+/** Mapper for mapping between assessment entities and models. */
+@Mapper(componentModel = "spring", uses = CommonMapper.class)
 public interface AssessmentMapper {
 
   @Mapping(target = "assessment", source = "name")
@@ -49,8 +46,7 @@ public interface AssessmentMapper {
    */
   @AfterMapping
   default void afterToOpaSession(
-      @MappingTarget OpaSession opaSession,
-      AssessmentDetail assessmentDetail) {
+      @MappingTarget OpaSession opaSession, AssessmentDetail assessmentDetail) {
     if (opaSession.getCheckpoint() != null) {
       opaSession.getCheckpoint().setId(opaSession.getId());
       opaSession.getCheckpoint().setOpaSession(opaSession);
@@ -125,10 +121,8 @@ public interface AssessmentMapper {
   @Mapping(target = "opaListEntities", ignore = true)
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "checkpoint", ignore = true)
-  @BeanMapping(nullValuePropertyMappingStrategy =  NullValuePropertyMappingStrategy.IGNORE)
-  void mapIntoOpaSession(
-      @MappingTarget OpaSession opaSession,
-      PatchAssessmentDetail patch);
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  void mapIntoOpaSession(@MappingTarget OpaSession opaSession, PatchAssessmentDetail patch);
 
   /**
    * Maps a list of {@link OpaSession} entities to an {@link AssessmentDetails} model.
@@ -145,5 +139,4 @@ public interface AssessmentMapper {
     }
     return assessmentDetails;
   }
-
 }

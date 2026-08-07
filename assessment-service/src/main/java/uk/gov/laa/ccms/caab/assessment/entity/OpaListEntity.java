@@ -15,9 +15,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Represents an Oracle Intelligence Advisor list entity.
- */
+/** Represents an Oracle Intelligence Advisor list entity. */
 @Entity
 @Table(name = "XXCCMS_OPA_LISTENTITY", schema = "XXCCMS_PUI")
 @SequenceGenerator(
@@ -29,40 +27,25 @@ import lombok.Setter;
 @Setter
 public class OpaListEntity {
 
-
-  /**
-   * The unique identifier of the list entity.
-   */
+  /** The unique identifier of the list entity. */
   @Id
   @GeneratedValue(generator = "XXCCMS_OPA_LIST_ENTITY_S")
   private Long id;
 
-  /**
-   * The associated Oracle Intelligence Advisor session.
-   */
+  /** The associated Oracle Intelligence Advisor session. */
   @ManyToOne
-  @JoinColumn(
-      name = "FK_OPA_SESSION",
-      referencedColumnName = "ID")
+  @JoinColumn(name = "FK_OPA_SESSION", referencedColumnName = "ID")
   private OpaSession opaSession;
 
-  /**
-   * The type of the entity.
-   */
-  @Column(
-      name = "ENTITY_TYPE",
-      nullable = false)
+  /** The type of the entity. */
+  @Column(name = "ENTITY_TYPE", nullable = false)
   private String entityType;
 
-  /**
-   * The entities of this list entity.
-   */
+  /** The entities of this list entity. */
   @OneToMany(
       mappedBy = "opaListEntity",
       cascade = CascadeType.ALL,
       orphanRemoval = true,
       fetch = FetchType.EAGER)
   private List<OpaEntity> opaEntities;
-
-
 }

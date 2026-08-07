@@ -40,8 +40,7 @@ import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
 @ExtendWith(MockitoExtension.class)
 class AssessmentMapperTest {
 
-  @InjectMocks
-  private AssessmentMapperImpl assessmentMapper = new AssessmentMapperImpl();
+  @InjectMocks private AssessmentMapperImpl assessmentMapper = new AssessmentMapperImpl();
 
   @Mock(answer = Answers.CALLS_REAL_METHODS)
   private CommonMapper commonMapper;
@@ -111,12 +110,13 @@ class AssessmentMapperTest {
 
   @Test
   void testToOpaSessionWithNonNullDetail() {
-    AssessmentDetail detail = new AssessmentDetail()
-        .providerId("providerId")
-        .caseReferenceNumber("caseRefNumber")
-        .name("name")
-        .status("status")
-        .id(1L);
+    AssessmentDetail detail =
+        new AssessmentDetail()
+            .providerId("providerId")
+            .caseReferenceNumber("caseRefNumber")
+            .name("name")
+            .status("status")
+            .id(1L);
 
     OpaSession session = assessmentMapper.toOpaSession(detail);
 
@@ -175,8 +175,7 @@ class AssessmentMapperTest {
 
   @Test
   void testToAssessmentEntityTypeDetailWithNullEntity() {
-    AssessmentEntityTypeDetail detail =
-        assessmentMapper.toAssessmentEntityTypeDetail(null);
+    AssessmentEntityTypeDetail detail = assessmentMapper.toAssessmentEntityTypeDetail(null);
     assertNull(detail);
   }
 
@@ -197,8 +196,7 @@ class AssessmentMapperTest {
 
   @Test
   void testToAssessmentEntityDetailWithNullEntity() {
-    AssessmentEntityDetail detail =
-        assessmentMapper.toAssessmentEntityDetail(null);
+    AssessmentEntityDetail detail = assessmentMapper.toAssessmentEntityDetail(null);
     assertNull(detail);
   }
 
@@ -210,8 +208,7 @@ class AssessmentMapperTest {
     opaAttribute.setId(1L);
     opaAttribute.setValue("value");
 
-    AssessmentAttributeDetail detail =
-        assessmentMapper.toAssessmentAttributeDetail(opaAttribute);
+    AssessmentAttributeDetail detail = assessmentMapper.toAssessmentAttributeDetail(opaAttribute);
 
     assertNotNull(detail);
     assertEquals("attributeId", detail.getName());
@@ -222,8 +219,7 @@ class AssessmentMapperTest {
 
   @Test
   void testToAssessmentAttributeDetailWithNullAttribute() {
-    AssessmentAttributeDetail detail =
-        assessmentMapper.toAssessmentAttributeDetail(null);
+    AssessmentAttributeDetail detail = assessmentMapper.toAssessmentAttributeDetail(null);
     assertNull(detail);
   }
 
@@ -242,9 +238,7 @@ class AssessmentMapperTest {
 
   @Test
   void testOpaListEntityListToAssessmentEntityTypeDetailListWithNonNullList() {
-    List<OpaListEntity> opaListEntities = Arrays.asList(
-        new OpaListEntity(),
-        new OpaListEntity());
+    List<OpaListEntity> opaListEntities = Arrays.asList(new OpaListEntity(), new OpaListEntity());
     List<AssessmentEntityTypeDetail> details =
         assessmentMapper.opaListEntityListToAssessmentEntityTypeDetailList(opaListEntities);
 
@@ -254,14 +248,16 @@ class AssessmentMapperTest {
 
   @Test
   void testOpaEntityListToAssessmentEntityDetailListWithNullList() {
-    List<AssessmentEntityDetail> details = assessmentMapper.opaEntityListToAssessmentEntityDetailList(null);
+    List<AssessmentEntityDetail> details =
+        assessmentMapper.opaEntityListToAssessmentEntityDetailList(null);
     assertNull(details);
   }
 
   @Test
   void testOpaEntityListToAssessmentEntityDetailListWithNonNullList() {
     List<OpaEntity> opaEntities = Arrays.asList(new OpaEntity(), new OpaEntity());
-    List<AssessmentEntityDetail> details = assessmentMapper.opaEntityListToAssessmentEntityDetailList(opaEntities);
+    List<AssessmentEntityDetail> details =
+        assessmentMapper.opaEntityListToAssessmentEntityDetailList(opaEntities);
 
     assertNotNull(details);
     assertEquals(opaEntities.size(), details.size());
@@ -269,14 +265,16 @@ class AssessmentMapperTest {
 
   @Test
   void testOpaAttributeListToAssessmentAttributeDetailListWithNullList() {
-    List<AssessmentAttributeDetail> details = assessmentMapper.opaAttributeListToAssessmentAttributeDetailList(null);
+    List<AssessmentAttributeDetail> details =
+        assessmentMapper.opaAttributeListToAssessmentAttributeDetailList(null);
     assertNull(details);
   }
 
   @Test
   void testOpaAttributeListToAssessmentAttributeDetailListWithNonNullList() {
     List<OpaAttribute> opaAttributes = Arrays.asList(new OpaAttribute(), new OpaAttribute());
-    List<AssessmentAttributeDetail> details = assessmentMapper.opaAttributeListToAssessmentAttributeDetailList(opaAttributes);
+    List<AssessmentAttributeDetail> details =
+        assessmentMapper.opaAttributeListToAssessmentAttributeDetailList(opaAttributes);
 
     assertNotNull(details);
     assertEquals(opaAttributes.size(), details.size());
@@ -284,21 +282,22 @@ class AssessmentMapperTest {
 
   @Test
   void testOpaRelationshipTargetToAssessmentRelationshipTargetDetailWithNullTarget() {
-    AssessmentRelationshipTargetDetail detail = assessmentMapper.opaRelationshipTargetToAssessmentRelationshipTargetDetail(null);
+    AssessmentRelationshipTargetDetail detail =
+        assessmentMapper.opaRelationshipTargetToAssessmentRelationshipTargetDetail(null);
     assertNull(detail);
   }
 
   @Test
   void testOpaRelationshipTargetSetToAssessmentRelationshipTargetDetailListWithNullSet() {
-    List<AssessmentRelationshipTargetDetail> details = assessmentMapper.opaRelationshipTargetSetToAssessmentRelationshipTargetDetailList(null);
+    List<AssessmentRelationshipTargetDetail> details =
+        assessmentMapper.opaRelationshipTargetSetToAssessmentRelationshipTargetDetailList(null);
     assertNull(details);
   }
 
   @Test
   void testOpaRelationshipTargetSetToAssessmentRelationshipTargetDetailListWithNonNullSet() {
-    Set<OpaRelationshipTarget>
-        opaRelationshipTargets = new HashSet<>(
-            Arrays.asList(new OpaRelationshipTarget(), new OpaRelationshipTarget()));
+    Set<OpaRelationshipTarget> opaRelationshipTargets =
+        new HashSet<>(Arrays.asList(new OpaRelationshipTarget(), new OpaRelationshipTarget()));
     List<AssessmentRelationshipTargetDetail> details =
         assessmentMapper.opaRelationshipTargetSetToAssessmentRelationshipTargetDetailList(
             opaRelationshipTargets);
@@ -313,7 +312,9 @@ class AssessmentMapperTest {
     opaRelationshipTarget.setId(1L);
     opaRelationshipTarget.setTargetEntityId("targetEntityId");
 
-    AssessmentRelationshipTargetDetail detail = assessmentMapper.opaRelationshipTargetToAssessmentRelationshipTargetDetail(opaRelationshipTarget);
+    AssessmentRelationshipTargetDetail detail =
+        assessmentMapper.opaRelationshipTargetToAssessmentRelationshipTargetDetail(
+            opaRelationshipTarget);
 
     assertNotNull(detail);
     assertEquals(1L, detail.getId());
@@ -333,7 +334,8 @@ class AssessmentMapperTest {
     target2.setId(2L);
     opaRelationship.setRelationshipTargets(new HashSet<>(Arrays.asList(target1, target2)));
 
-    AssessmentRelationshipDetail detail = assessmentMapper.opaRelationshipToAssessmentRelationshipDetail(opaRelationship);
+    AssessmentRelationshipDetail detail =
+        assessmentMapper.opaRelationshipToAssessmentRelationshipDetail(opaRelationship);
 
     assertNotNull(detail);
     assertEquals(1L, detail.getId());
@@ -341,7 +343,6 @@ class AssessmentMapperTest {
     assertTrue(detail.getPrepopulated());
     assertEquals(2, detail.getRelationshipTargets().size());
   }
-
 
   @Test
   void testOpaRelationshipToAssessmentRelationshipDetailWithNullRelationship() {
@@ -371,11 +372,12 @@ class AssessmentMapperTest {
   @Test
   void mapIntoOpaSession_WithFullDetail_MapsAllFields() {
     OpaSession opaSession = new OpaSession();
-    PatchAssessmentDetail patch = new PatchAssessmentDetail()
-        .name("Assessment Name")
-        .providerId("Provider123")
-        .caseReferenceNumber("CaseRef456")
-        .status("Completed");
+    PatchAssessmentDetail patch =
+        new PatchAssessmentDetail()
+            .name("Assessment Name")
+            .providerId("Provider123")
+            .caseReferenceNumber("CaseRef456")
+            .status("Completed");
 
     assessmentMapper.mapIntoOpaSession(opaSession, patch);
 
@@ -388,9 +390,8 @@ class AssessmentMapperTest {
   @Test
   void mapIntoOpaSession_WithPartialDetail_MapsNonNullFields() {
     OpaSession opaSession = new OpaSession();
-    PatchAssessmentDetail patch = new PatchAssessmentDetail()
-        .name("Partial Name")
-        .caseReferenceNumber("PartialCaseRef123");
+    PatchAssessmentDetail patch =
+        new PatchAssessmentDetail().name("Partial Name").caseReferenceNumber("PartialCaseRef123");
 
     assessmentMapper.mapIntoOpaSession(opaSession, patch);
 
@@ -403,17 +404,20 @@ class AssessmentMapperTest {
 
   @Test
   void opaCheckpointToAssessmentCheckpointDetail_returnsNull_whenOpaCheckpointIsNull() {
-    AssessmentCheckpointDetail result = assessmentMapper.opaCheckpointToAssessmentCheckpointDetail(null);
+    AssessmentCheckpointDetail result =
+        assessmentMapper.opaCheckpointToAssessmentCheckpointDetail(null);
     assertNull(result);
   }
 
   @Test
-  void opaCheckpointToAssessmentCheckpointDetail_returnsAssessmentCheckpointDetail_whenOpaCheckpointIsNotNull() {
+  void
+      opaCheckpointToAssessmentCheckpointDetail_returnsAssessmentCheckpointDetail_whenOpaCheckpointIsNotNull() {
     OpaCheckpoint opaCheckpoint = mock(OpaCheckpoint.class);
     when(opaCheckpoint.getUsername()).thenReturn("testUser");
     when(opaCheckpoint.getInterviewData()).thenReturn(new byte[0]);
 
-    AssessmentCheckpointDetail result = assessmentMapper.opaCheckpointToAssessmentCheckpointDetail(opaCheckpoint);
+    AssessmentCheckpointDetail result =
+        assessmentMapper.opaCheckpointToAssessmentCheckpointDetail(opaCheckpoint);
 
     assertNotNull(result);
     assertEquals("testUser", result.getUsername());
@@ -528,7 +532,8 @@ class AssessmentMapperTest {
 
     List<AssessmentAttributeDetail> list = Arrays.asList(detail1, detail2);
 
-    List<OpaAttribute> result = assessmentMapper.assessmentAttributeDetailListToOpaAttributeList(list);
+    List<OpaAttribute> result =
+        assessmentMapper.assessmentAttributeDetailListToOpaAttributeList(list);
 
     assertNotNull(result);
     assertEquals(2, result.size());
@@ -548,7 +553,8 @@ class AssessmentMapperTest {
 
   @Test
   void shouldReturnNullWhenAssessmentAttributeDetailListIsNull() {
-    List<OpaAttribute> result = assessmentMapper.assessmentAttributeDetailListToOpaAttributeList(null);
+    List<OpaAttribute> result =
+        assessmentMapper.assessmentAttributeDetailListToOpaAttributeList(null);
     assertNull(result);
   }
 
@@ -566,7 +572,8 @@ class AssessmentMapperTest {
 
     List<AssessmentRelationshipDetail> list = Arrays.asList(detail1, detail2);
 
-    List<OpaRelationship> result = assessmentMapper.assessmentRelationshipDetailListToOpaRelationshipList(list);
+    List<OpaRelationship> result =
+        assessmentMapper.assessmentRelationshipDetailListToOpaRelationshipList(list);
 
     assertNotNull(result);
     assertEquals(2, result.size());
@@ -580,7 +587,8 @@ class AssessmentMapperTest {
 
   @Test
   void shouldReturnNullWhenAssessmentRelationshipDetailListIsNull() {
-    List<OpaRelationship> result = assessmentMapper.assessmentRelationshipDetailListToOpaRelationshipList(null);
+    List<OpaRelationship> result =
+        assessmentMapper.assessmentRelationshipDetailListToOpaRelationshipList(null);
     assertNull(result);
   }
 
@@ -590,7 +598,8 @@ class AssessmentMapperTest {
     detail.setId(1L);
     detail.setTargetEntityId("entity1");
 
-    OpaRelationshipTarget result = assessmentMapper.assessmentRelationshipTargetDetailToOpaRelationshipTarget(detail);
+    OpaRelationshipTarget result =
+        assessmentMapper.assessmentRelationshipTargetDetailToOpaRelationshipTarget(detail);
 
     assertNotNull(result);
     assertEquals(1L, result.getId());
@@ -599,12 +608,8 @@ class AssessmentMapperTest {
 
   @Test
   void shouldReturnNullWhenAssessmentRelationshipTargetDetailIsNull() {
-    OpaRelationshipTarget result = assessmentMapper.assessmentRelationshipTargetDetailToOpaRelationshipTarget(null);
+    OpaRelationshipTarget result =
+        assessmentMapper.assessmentRelationshipTargetDetailToOpaRelationshipTarget(null);
     assertNull(result);
   }
-
-
-
-
-
 }
