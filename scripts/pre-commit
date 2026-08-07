@@ -2,7 +2,7 @@
 # scripts/pre-commit
 
 # Run spotlessApply
-changed_java_files=$(git diff --cached --name-only -- 'src/*/java/**/*.java')
+changed_java_files=$(git diff --cached --name-only -- 'assessment-service/src/*/java/**/*.java')
 if [ -n "$changed_java_files" ]; then
   echo "Running Spotless Apply..."
   ./gradlew spotlessApply
