@@ -3,9 +3,7 @@ package uk.gov.laa.ccms.caab.assessment.mapper;
 import java.util.Base64;
 import org.mapstruct.Mapper;
 
-/**
- * Common mappings which can be used by other mappers.
- */
+/** Common mappings which can be used by other mappers. */
 @Mapper(componentModel = "spring")
 public interface CommonMapper {
 
@@ -19,7 +17,6 @@ public interface CommonMapper {
     return flag != null ? flag : Boolean.FALSE;
   }
 
-
   default String toBase64String(byte[] bytes) {
     return bytes != null ? Base64.getEncoder().encodeToString(bytes) : null;
   }
@@ -28,4 +25,3 @@ public interface CommonMapper {
     return Base64.getDecoder().decode(base64EncodedString);
   }
 }
-

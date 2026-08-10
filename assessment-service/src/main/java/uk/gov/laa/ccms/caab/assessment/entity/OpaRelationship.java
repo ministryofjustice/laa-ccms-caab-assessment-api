@@ -18,9 +18,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.type.NumericBooleanConverter;
 
-/**
- * Represents an Oracle Intelligence Advisor relationship.
- */
+/** Represents an Oracle Intelligence Advisor relationship. */
 @Entity
 @Table(name = "XXCCMS_OPA_RELATIONSHIP", schema = "XXCCMS_PUI")
 @SequenceGenerator(
@@ -32,47 +30,27 @@ import org.hibernate.type.NumericBooleanConverter;
 @Setter
 public class OpaRelationship {
 
-  /**
-   * The unique identifier of the relationship.
-   */
+  /** The unique identifier of the relationship. */
   @Id
   @GeneratedValue(generator = "XXCCMS_OPA_RELATIONSHIP_S")
   private Long id;
 
-  /**
-   * The associated Oracle Intelligence Advisor entity.
-   */
+  /** The associated Oracle Intelligence Advisor entity. */
   @ManyToOne
-  @JoinColumn(
-      name = "FK_OPA_ENTITY",
-      nullable = false,
-      referencedColumnName = "ID")
+  @JoinColumn(name = "FK_OPA_ENTITY", nullable = false, referencedColumnName = "ID")
   private OpaEntity opaEntity;
 
-
-  /**
-   * The associated Oracle Intelligence Advisor relationship targets.
-   */
-  @OneToMany(
-      cascade = CascadeType.ALL,
-      orphanRemoval = true,
-      fetch = FetchType.EAGER)
-  @JoinColumn(
-      name = "FK_OPA_RELATIONSHIP",
-      referencedColumnName = "ID",
-      nullable = false)
+  /** The associated Oracle Intelligence Advisor relationship targets. */
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+  @JoinColumn(name = "FK_OPA_RELATIONSHIP", referencedColumnName = "ID", nullable = false)
   @OrderBy("targetEntityId asc ")
   private Set<OpaRelationshipTarget> relationshipTargets;
 
-  /**
-   * The name of the relationship.
-   */
+  /** The name of the relationship. */
   @Column(name = "NAME")
   private String name;
 
-  /**
-   * Indicates if the relationship is prepopulated.
-   */
+  /** Indicates if the relationship is prepopulated. */
   @Column(name = "PREPOPULATED")
   @Convert(converter = NumericBooleanConverter.class)
   private Boolean prepopulated;

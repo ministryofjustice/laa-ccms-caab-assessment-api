@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+# Run spotlessApply
+changed_java_files=$(git diff --cached --name-only -- 'assessment-service/src/*/java/**/*.java')
+if [ -n "$changed_java_files" ]; then
+  echo "Running Spotless Apply..."
+  ./gradlew :assessment-service:spotlessApply
+
+  # Re-add the staged Java files so formatting changes are included in the current commit
+  printf '%s\n' "$changed_java_files" | while IFS= read -r file; do
+    [ -n "$file" ] && git add -- "$file"
+  done
+fi

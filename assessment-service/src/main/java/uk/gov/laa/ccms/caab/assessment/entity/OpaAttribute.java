@@ -14,9 +14,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.type.NumericBooleanConverter;
 
-/**
- * Represents an attribute of an Oracle Intelligence Advisor entity.
- */
+/** Represents an attribute of an Oracle Intelligence Advisor entity. */
 @Entity
 @Table(name = "XXCCMS_OPA_ATTRIBUTE", schema = "XXCCMS_PUI")
 @SequenceGenerator(
@@ -28,66 +26,40 @@ import org.hibernate.type.NumericBooleanConverter;
 @Setter
 public class OpaAttribute {
 
-  /**
-   * The unique identifier of the attribute.
-   */
+  /** The unique identifier of the attribute. */
   @Id
   @GeneratedValue(generator = "XXCCMS_OPA_ATTRIBUTE_S")
   private Long id;
 
-  /**
-   * The associated Oracle Intelligence Advisor entity.
-   */
+  /** The associated Oracle Intelligence Advisor entity. */
   @ManyToOne
-  @JoinColumn(
-      name = "FK_OPA_ENTITY",
-      nullable = false,
-      referencedColumnName = "ID")
+  @JoinColumn(name = "FK_OPA_ENTITY", nullable = false, referencedColumnName = "ID")
   private OpaEntity opaEntity;
 
-  /**
-   * The identifier of the attribute.
-   */
-  @Column(
-      name = "ATTRIBUTE_ID",
-      nullable = false,
-      length = 100)
+  /** The identifier of the attribute. */
+  @Column(name = "ATTRIBUTE_ID", nullable = false, length = 100)
   private String attributeId;
 
-  /**
-   * The type of the attribute.
-   */
-  @Column(
-      name = "ATTRIBUTE_TYPE",
-      nullable = false)
+  /** The type of the attribute. */
+  @Column(name = "ATTRIBUTE_TYPE", nullable = false)
   private String attributeType;
 
-  /**
-   * The value of the attribute.
-   */
+  /** The value of the attribute. */
   @Column(name = "ATTRIBUTE_VALUE")
   @Lob
   private String value;
 
-  /**
-   * The type of inferencing used for the attribute.
-   */
+  /** The type of inferencing used for the attribute. */
   @Column(name = "INFERENCING_TYPE")
   private String inferencingType;
 
-  /**
-   * Indicates if the attribute is prepopulated.
-   */
+  /** Indicates if the attribute is prepopulated. */
   @Column(name = "PREPOPULATED", nullable = false)
   @Convert(converter = NumericBooleanConverter.class)
   private Boolean prepopulated;
 
-  /**
-   * Indicates if the attribute was asked in the session.
-   */
+  /** Indicates if the attribute was asked in the session. */
   @Column(name = "ASKED")
   @Convert(converter = NumericBooleanConverter.class)
   private Boolean asked;
-
-
 }

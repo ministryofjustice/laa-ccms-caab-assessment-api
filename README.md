@@ -1,6 +1,6 @@
 [![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/laa-ccms-caab-assessment-api/badge)](https://github-community.service.justice.gov.uk/repository-standards/laa-ccms-caab-assessment-api)
 
-# laa-ccms-caab-assessment-api
+# CCMS CAAB Assessment API
 
 ## Common Components
 

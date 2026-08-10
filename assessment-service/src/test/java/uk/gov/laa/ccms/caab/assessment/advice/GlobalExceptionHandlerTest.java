@@ -16,14 +16,11 @@ import uk.gov.laa.ccms.caab.assessment.exception.ApplicationException;
 @ExtendWith(MockitoExtension.class)
 public class GlobalExceptionHandlerTest {
 
-  @Mock
-  private Logger loggerMock;
+  @Mock private Logger loggerMock;
 
-  @Mock
-  private Model model;
+  @Mock private Model model;
 
-  @InjectMocks
-  private GlobalExceptionHandler globalExceptionHandler;
+  @InjectMocks private GlobalExceptionHandler globalExceptionHandler;
 
   @Test
   public void testHandleDataApiClientException() {
@@ -34,5 +31,4 @@ public class GlobalExceptionHandlerTest {
 
     assertEquals(502, response.getStatusCode().value());
   }
-
 }

@@ -23,9 +23,7 @@ import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.repository.OpaAssessmentLogRepository;
 import uk.gov.laa.ccms.caab.assessment.repository.OpaSessionRepository;
 
-/**
- * Service class for handling assessment requests.
- */
+/** Service class for handling assessment requests. */
 @Service
 @RequiredArgsConstructor
 public class AssessmentService {
@@ -42,8 +40,7 @@ public class AssessmentService {
    * @return the list of assessments
    */
   public AssessmentDetails getAssessments(
-      final AssessmentDetail criteria,
-      final List<String> names) {
+      final AssessmentDetail criteria, final List<String> names) {
     OpaSession example = assessmentMapper.toOpaSession(criteria);
 
     List<OpaSession> opaSessions =
@@ -60,13 +57,15 @@ public class AssessmentService {
    * @throws ApplicationException if the assessment is not found
    */
   public AssessmentDetail getAssessment(Long assessmentId) {
-    return opaSessionRepository.findById(assessmentId)
+    return opaSessionRepository
+        .findById(assessmentId)
         .map(assessmentMapper::toAssessmentDetail)
-        .orElseThrow(() -> new ApplicationException(
-            String.format("Assessment with id %s not found", assessmentId),
-            HttpStatus.NOT_FOUND));
+        .orElseThrow(
+            () ->
+                new ApplicationException(
+                    String.format("Assessment with id %s not found", assessmentId),
+                    HttpStatus.NOT_FOUND));
   }
-
 
   /**
    * Creates an assessment and saves it to the repository.
@@ -75,8 +74,7 @@ public class AssessmentService {
    * @return the ID of the created assessment
    */
   @Transactional
-  public Long createAssessment(
-      final AssessmentDetail assessmentDetail) {
+  public Long createAssessment(final AssessmentDetail assessmentDetail) {
 
     OpaSession assessment = assessmentMapper.toOpaSession(assessmentDetail);
     opaSessionRepository.save(assessment);
@@ -92,14 +90,12 @@ public class AssessmentService {
    * @param names a list of assessment types used to further filter which assessments to delete.
    */
   @Transactional
-  public void deleteAssessments(
-      final AssessmentDetail criteria,
-      final List<String> names) {
+  public void deleteAssessments(final AssessmentDetail criteria, final List<String> names) {
 
     OpaSession example = assessmentMapper.toOpaSession(criteria);
 
-    List<OpaSession> sessionsToDelete = opaSessionRepository.findAll(
-        buildQuerySpecification(Example.of(example), names));
+    List<OpaSession> sessionsToDelete =
+        opaSessionRepository.findAll(buildQuerySpecification(Example.of(example), names));
 
     Set<OpaAssessmentLog> logsToDelete = collectLogsToDelete(sessionsToDelete);
 
@@ -121,12 +117,13 @@ public class AssessmentService {
     for (OpaSession session : sessionsToDelete) {
       String sessionAssessmentType = session.getAssessment();
 
-      String logAssessmentType = OpaAssessmentLogMap
-          .findLogAssessmentTypeBySessionAssessmentType(sessionAssessmentType);
+      String logAssessmentType =
+          OpaAssessmentLogMap.findLogAssessmentTypeBySessionAssessmentType(sessionAssessmentType);
 
       if (logAssessmentType != null) {
-        List<OpaAssessmentLog> assessmentLogs = opaAssessmentLogRepository
-            .findByTargetIdAndAssessment(session.getTargetId(), logAssessmentType);
+        List<OpaAssessmentLog> assessmentLogs =
+            opaAssessmentLogRepository.findByTargetIdAndAssessment(
+                session.getTargetId(), logAssessmentType);
         logsToDelete.addAll(assessmentLogs);
       }
     }
@@ -149,24 +146,23 @@ public class AssessmentService {
    * Deletes a checkpoint from an assessment.
    *
    * @param assessmentId the ID of the assessment to delete the checkpoint from
-   * @throws ApplicationException if the checkpoint with the specified ID
-   *         does not exist.
+   * @throws ApplicationException if the checkpoint with the specified ID does not exist.
    */
-  public void deleteCheckpoint(
-      final Long assessmentId) {
+  public void deleteCheckpoint(final Long assessmentId) {
 
-    opaSessionRepository.findById(assessmentId)
+    opaSessionRepository
+        .findById(assessmentId)
         .ifPresentOrElse(
             assessment -> {
               assessment.getCheckpoint().setOpaSession(null);
               assessment.setCheckpoint(null);
               opaSessionRepository.save(assessment);
-            }, () -> {
+            },
+            () -> {
               throw new ApplicationException(
                   String.format("Assessment checkpoint with id: %s not found", assessmentId),
                   HttpStatus.NOT_FOUND);
-            }
-        );
+            });
   }
 
   /**
@@ -174,13 +170,10 @@ public class AssessmentService {
    *
    * @param assessmentId The ID of the assessment to update.
    * @param assessment The new details to be applied to the assessment.
-   * @throws ApplicationException if the assessment with the specified ID
-   *         does not exist.
+   * @throws ApplicationException if the assessment with the specified ID does not exist.
    */
   @Transactional
-  public void updateAssessment(
-      final Long assessmentId,
-      final AssessmentDetail assessment) {
+  public void updateAssessment(final Long assessmentId, final AssessmentDetail assessment) {
 
     if (opaSessionRepository.existsById(assessmentId)) {
       OpaSession session = assessmentMapper.toOpaSession(assessment);
@@ -191,23 +184,23 @@ public class AssessmentService {
     }
   }
 
-
   /**
    * Patches an assessment's details in the database.
    *
    * @param assessmentId The ID of the assessment to update.
    * @param patch The new details to be applied to the assessment.
-   * @throws ApplicationException if the assessment with the specified ID
-   *         does not exist.
+   * @throws ApplicationException if the assessment with the specified ID does not exist.
    */
   @Transactional
-  public void patchAssessment(
-      final Long assessmentId,
-      final PatchAssessmentDetail patch) {
-    OpaSession opaSession = opaSessionRepository.findById(assessmentId)
-        .orElseThrow(() -> new ApplicationException(
-            String.format("Assessment with id %s not found", assessmentId),
-            HttpStatus.NOT_FOUND));
+  public void patchAssessment(final Long assessmentId, final PatchAssessmentDetail patch) {
+    OpaSession opaSession =
+        opaSessionRepository
+            .findById(assessmentId)
+            .orElseThrow(
+                () ->
+                    new ApplicationException(
+                        String.format("Assessment with id %s not found", assessmentId),
+                        HttpStatus.NOT_FOUND));
 
     assessmentMapper.mapIntoOpaSession(opaSession, patch);
     opaSessionRepository.save(opaSession);
@@ -221,8 +214,7 @@ public class AssessmentService {
    * @return the Specification object that constructs the predicate for querying.
    */
   protected Specification<OpaSession> buildQuerySpecification(
-      final Example<OpaSession> assessment,
-      final List<String> names) {
+      final Example<OpaSession> assessment, final List<String> names) {
     return (root, query, builder) -> {
       List<Predicate> predicates = new ArrayList<>();
 
@@ -230,8 +222,8 @@ public class AssessmentService {
         predicates.add(root.get("assessment").in(names));
       }
 
-      Predicate examplePredicate = QueryByExamplePredicateBuilder
-          .getPredicate(root, builder, assessment);
+      Predicate examplePredicate =
+          QueryByExamplePredicateBuilder.getPredicate(root, builder, assessment);
 
       if (examplePredicate != null) {
         predicates.add(examplePredicate);
@@ -240,5 +232,4 @@ public class AssessmentService {
       return builder.and(predicates.toArray(new Predicate[0]));
     };
   }
-
 }

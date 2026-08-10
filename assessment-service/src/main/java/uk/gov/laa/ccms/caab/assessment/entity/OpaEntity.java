@@ -17,9 +17,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.type.NumericBooleanConverter;
 
-/**
- * Represents an Oracle Intelligence Advisor entity.
- */
+/** Represents an Oracle Intelligence Advisor entity. */
 @Entity
 @Table(name = "XXCCMS_OPA_ENTITY", schema = "XXCCMS_PUI")
 @SequenceGenerator(
@@ -31,42 +29,26 @@ import org.hibernate.type.NumericBooleanConverter;
 @Setter
 public class OpaEntity {
 
-  /**
-   * The unique identifier of the entity.
-   */
+  /** The unique identifier of the entity. */
   @Id
   @GeneratedValue(generator = "XXCCMS_OPA_ENTITY_S")
   private Long id;
 
-  /**
-   * The associated Oracle Intelligence Advisor list entity.
-   */
+  /** The associated Oracle Intelligence Advisor list entity. */
   @ManyToOne
-  @JoinColumn(
-      name = "FK_OPA_LIST_ENTITY",
-      nullable = false,
-      referencedColumnName = "ID")
+  @JoinColumn(name = "FK_OPA_LIST_ENTITY", nullable = false, referencedColumnName = "ID")
   private OpaListEntity opaListEntity;
 
-  /**
-   * The associated Oracle Intelligence Advisor session.
-   */
+  /** The associated Oracle Intelligence Advisor session. */
   @ManyToOne
-  @JoinColumn(
-      name = "FK_OPA_SESSION",
-      nullable = false,
-      referencedColumnName = "ID")
+  @JoinColumn(name = "FK_OPA_SESSION", nullable = false, referencedColumnName = "ID")
   private OpaSession opaSession;
 
-  /**
-   * The identifier of the entity.
-   */
+  /** The identifier of the entity. */
   @Column(name = "ENTITY_ID")
   private String entityId;
 
-  /**
-   * The attributes of the entity.
-   */
+  /** The attributes of the entity. */
   @OneToMany(
       mappedBy = "opaEntity",
       cascade = CascadeType.ALL,
@@ -74,9 +56,7 @@ public class OpaEntity {
       fetch = FetchType.EAGER)
   private List<OpaAttribute> opaAttributes;
 
-  /**
-   * The relationships of the entity.
-   */
+  /** The relationships of the entity. */
   @OneToMany(
       mappedBy = "opaEntity",
       cascade = CascadeType.ALL,
@@ -84,9 +64,7 @@ public class OpaEntity {
       fetch = FetchType.EAGER)
   private List<OpaRelationship> relations;
 
-  /**
-   * Indicates if the entity is prepopulated.
-   */
+  /** Indicates if the entity is prepopulated. */
   @Column(name = "PREPOPULATED")
   @Convert(converter = NumericBooleanConverter.class)
   private Boolean prepopulated;
@@ -94,8 +72,4 @@ public class OpaEntity {
   @Column(name = "COMPLETED")
   @Convert(converter = NumericBooleanConverter.class)
   private Boolean completed;
-
-
-
-
 }
