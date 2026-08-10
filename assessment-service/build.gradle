@@ -80,7 +80,8 @@ tasks.withType(Test).configureEach {
 
     jvmArgs(
             "-javaagent:${configurations.mockitoAgent.asPath}",
-            "-Xshare:off"
+            "-Xshare:off",
+            "-Dnet.bytebuddy.safe=true" // Prevent unsafe memory access, see https://github.com/raphw/byte-buddy/issues/1803
     )
 
     finalizedBy jacocoTestReport
