@@ -56,7 +56,7 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
     //Enable Swagger UI
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
