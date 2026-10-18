@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.logging.LogLevel;
+import org.springframework.boot.logging.LoggingInitializationContext;
 import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.boot.micrometer.observation.autoconfigure.ObservationAutoConfiguration;
 import org.springframework.boot.micrometer.tracing.autoconfigure.MicrometerTracingAutoConfiguration;
@@ -42,6 +43,13 @@ class LoggingAcceptanceTest {
   @ParameterizedTest
   @ValueSource(strings = {"default", "dev", "local"})
   void verifiesLoggingForRequest(String profile, CapturedOutput output) throws Exception {
+    LoggingSystem logging = LoggingSystem.get(getClass().getClassLoader());
+    // Reproduce an earlier Spring test context having initialized the shared Logback context.
+    logging.cleanUp();
+    logging.beforeInitialize();
+    logging.initialize(new LoggingInitializationContext(new StandardEnvironment()), null, null);
+    // Each probe must initialize logging from its own production YAML, not reuse that context.
+    logging.cleanUp();
     StandardEnvironment env = new StandardEnvironment();
     env.getPropertySources()
         .addFirst(
@@ -73,7 +81,6 @@ class LoggingAcceptanceTest {
       String version = context.getEnvironment().getRequiredProperty("spring.application.version");
       assertFalse(version.contains("@"));
       assertNotEquals("unspecified", version);
-      LoggingSystem logging = LoggingSystem.get(getClass().getClassLoader());
       assertEquals(LogLevel.WARN, logging.getLoggerConfiguration("ROOT").getEffectiveLevel());
       assertEquals(
           LogLevel.ERROR,

@@ -17,7 +17,6 @@ Verified with no active profile, `dev`, and `local`:
 - Session correlation reuse, no session creation for stateless calls, and MDC cleanup
   on failures. Raw authentication session IDs are never logged by this filter.
 
-The data API also tests user ID masking in JSON and local messages and exception stack traces.
 This verifies the tested logging paths; it is not a full audit of every existing log statement.
 
 Raw captures: [default](default.log), [dev](dev.log), [local](local.log).
