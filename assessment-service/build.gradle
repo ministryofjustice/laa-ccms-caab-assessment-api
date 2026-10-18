@@ -46,11 +46,24 @@ configurations.configureEach {
     }
 }
 
+// Replaces application.yml @version@ with the project version
+processResources {
+    inputs.property('applicationVersion', project.version.toString())
+    filesMatching('application.yml') {
+        filter {
+            it.replace('@version@', version.toString())
+        }
+    }
+}
+
 dependencies {
     implementation project(':assessment-api')
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Required for tracing information
+    implementation 'org.springframework.boot:spring-boot-micrometer-tracing-brave'
     implementation 'io.micrometer:micrometer-tracing-bridge-brave'
     runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
 
