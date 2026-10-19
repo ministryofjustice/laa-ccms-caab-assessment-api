@@ -10,19 +10,20 @@ configurations {
 configurations.configureEach {
     resolutionStrategy.eachDependency { details ->
         if (details.requested.group == 'org.apache.tomcat.embed') {
-            details.useVersion '11.0.23'
-            details.because 'Temporary override to remediate vulnerability'
+            details.useVersion '11.0.26'
+            details.because 'Remediate container scan findings including SNYK-JAVA-ORGAPACHETOMCATEMBED-20552494'
         }
-        if (details.requested.group == 'ch.qos.logback') {
-            details.useVersion '1.5.36'
-            details.because 'Temporary override to remediate vulnerability'
+        if (details.requested.group == 'ch.qos.logback'
+                && details.requested.name in ['logback-classic', 'logback-core']) {
+            details.useVersion '1.6.5'
+            details.because 'Remediate SNYK-JAVA-CHQOSLOGBACK-20824362; keep Logback modules aligned'
         }
         if (details.requested.group == 'org.apache.logging.log4j') {
             details.useVersion '2.25.5'
             details.because 'Temporary override to remediate vulnerability'
         }
-        if (details.requested.group == 'com.fasterxml.jackson.core' && details.requested.name == 'jackson-databind') {
-            details.useVersion '2.22.1'
+        if (details.requested.group == 'com.fasterxml.jackson.core' && details.requested.name in ['jackson-core', 'jackson-databind']) {
+            details.useVersion '2.22.3'
             details.because 'Temporary override to remediate vulnerability'
         }
         if (details.requested.group == 'com.fasterxml.jackson.core' && details.requested.name == 'jackson-annotations') {
@@ -34,7 +35,7 @@ configurations.configureEach {
             details.because 'Temporary override to remediate vulnerability'
         }
         if (details.requested.group == 'tools.jackson.core') {
-            details.useVersion '3.2.1'
+            details.useVersion '3.2.3'
             details.because 'Temporary override to remediate vulnerability'
         }
     }
