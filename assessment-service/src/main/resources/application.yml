@@ -28,6 +28,17 @@ laa:
     authorized-clients: ${AUTHORIZED_CLIENTS}
     authorized-roles: ${AUTHORIZED_ROLES}
     unprotected-uris: ${UNPROTECTED_URIS}
+  # Runs alongside the API key starter: bearer tokens are authenticated here, other
+  # authentication-header values by the starter above, so callers migrate one at a time.
+  springboot.starter.oauth2:
+    resourceserver:
+      jwt:
+        tenants:
+          - issuer-uri: ${OAUTH2_ISSUER_URI}
+            audiences:
+              - ${OAUTH2_AUDIENCE}
+    authorized-roles: ${OAUTH2_AUTHORIZED_ROLES}
+    unprotected-uris: ${UNPROTECTED_URIS}
 
 management:
   endpoint:
