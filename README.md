@@ -104,7 +104,5 @@ without creating a session. It is scoped to this service and is not propagated d
 have no request correlation. The local pattern includes all three fields.
 
 Run the focused checks with `./gradlew assessment-service:test --tests '*LoggingAcceptanceTest' --tests '*SessionCorrelationFilterTest'`.
-They use synthetic requests and write actual captured log lines to `assessment-service/build/logging-evidence/`.
+They use synthetic requests to verify the captured console output.
 Do not enable request payload or SQL bind parameter logging with real personal data.
-
-Captured synthetic-request screenshots and validation scope: [logging evidence](docs/logging/README.md).
