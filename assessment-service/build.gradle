@@ -13,6 +13,11 @@ configurations.configureEach {
             details.useVersion '11.0.26'
             details.because 'Remediate container scan findings including SNYK-JAVA-ORGAPACHETOMCATEMBED-20552494'
         }
+        if (details.requested.group == 'org.hibernate.validator'
+                && details.requested.name == 'hibernate-validator') {
+            details.useVersion '9.1.5.Final'
+            details.because 'Remediate Expression Language Injection (SNYK-JAVA-ORGHIBERNATEVALIDATOR-20877468)'
+        }
         if (details.requested.group == 'ch.qos.logback'
                 && details.requested.name in ['logback-classic', 'logback-core']) {
             details.useVersion '1.6.5'
