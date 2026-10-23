@@ -18,3 +18,20 @@ laa.springboot.starter.auth:
       }
   ]'
   unprotected-uris: [ "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/favicon.ico", "/open-api-specification.yml"]
+
+laa.springboot.starter.oauth2:
+  resourceserver:
+    jwt:
+      tenants:
+        - issuer-uri: https://login.microsoftonline.com/integration-test-tenant/v2.0
+          audiences:
+            - api://laa-ccms-assessment-api
+  authorized-roles: '[
+      {
+          "name": "ALL",
+          "uris": [
+              "/**"
+          ]
+      }
+  ]'
+  unprotected-uris: [ "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/favicon.ico", "/open-api-specification.yml" ]
