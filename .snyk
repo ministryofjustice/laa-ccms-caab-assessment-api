@@ -1,6 +1,10 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
-ignore: {}
+ignore:
+  'SNYK-UBUNTU2404-ZLIB-19530295':
+    - '*':
+        reason: "OS package vulnerability in the Paketo buildpacks base image; not controllable from this repo (no builder/base-image pin available in this repo or laa-ccms-common-workflows). Accepted as risk pending a fix upstream."
+        expires: "2026-12-17T00:00:00Z"
 patch: {}
 exclude:
   global:
