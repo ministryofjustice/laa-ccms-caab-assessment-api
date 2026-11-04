@@ -393,5 +393,3 @@ components:
         target_entity_id:
           type: string
 
-security:
-  - ApiKeyAuth: []

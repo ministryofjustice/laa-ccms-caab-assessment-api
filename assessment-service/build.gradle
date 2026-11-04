@@ -68,7 +68,7 @@ dependencies {
     runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
 
     //Enable access token authentication
-    implementation 'uk.gov.justice.service.laa:laa-spring-boot-starter-auth'
+    implementation 'uk.gov.justice.service.laa:laa-spring-boot-starter-oauth2'
 
     //Metrics
     implementation 'org.springframework.boot:spring-boot-starter-actuator'

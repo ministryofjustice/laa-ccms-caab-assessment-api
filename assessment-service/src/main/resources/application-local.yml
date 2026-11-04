@@ -14,24 +14,21 @@ server:
   port: 8008
 
 
-laa:
-  springboot.starter.auth:
-    authentication-header: "Authorization"
-    authorized-clients: '[
-        {
-            "name": "caab-ui",
-            "roles": [
-                "ALL"
-            ],
-            "token": "78bd752c-814c-4fb5-801b-193839c8e768"
-        }
-    ]'
-    authorized-roles: '[
-        {
-            "name": "ALL",
-            "URIs": [
-                "/**"
-            ]
-        }
-    ]'
-    unprotected-uris: [ "/actuator/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/favicon.ico", "/open-api-specification.yml"]
+laa.springboot.starter.oauth2:
+  resourceserver:
+    jwt:
+      tenants:
+        - issuer-uri: https://login.microsoftonline.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/v2.0
+          audiences:
+            - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  scopes-claim-path: scp
+  authorized-roles: '[
+      {
+          "name": "test-role",
+          "uris": [
+              "/**"
+          ]
+      }
+  ]'
+  unprotected-uris: [ "/actuator/**", "/swagger-ui.html",
+                      "/swagger-ui/**", "/v3/api-docs/**", "/favicon.ico", "/open-api-specification.yml"]
