@@ -7,6 +7,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -43,6 +44,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -80,21 +82,49 @@ class ResponseDisclosureTest {
 
   @Test
   void healthAndProbesHideDiagnosticsAndPreserveFailureSemantics() throws Exception {
+    assertHealthAndProbes(port, failed, context, false);
+  }
+
+  @Nested
+  @TestPropertySource(properties = "UNPROTECTED_URIS=/not-health")
+  class AuthenticatedHealthTests {
+    @LocalServerPort private int protectedPort;
+    @Autowired private AtomicBoolean protectedFailed;
+    @Autowired private ConfigurableApplicationContext protectedContext;
+
+    @Test
+    void authenticatedHealthAndProbesHideDiagnosticsAndPreserveFailureSemantics() throws Exception {
+      for (String suffix : new String[] {"", "/liveness", "/readiness"}) {
+        String path = "/actuator/health" + suffix;
+        assertThat(get(protectedPort, path, "application/json", null).statusCode()).isIn(401, 403);
+        assertThat(get(protectedPort, path, "application/json", "invalid-token").statusCode())
+            .isIn(401, 403);
+      }
+      assertHealthAndProbes(protectedPort, protectedFailed, protectedContext, true);
+    }
+  }
+
+  private void assertHealthAndProbes(
+      int serverPort,
+      AtomicBoolean failed,
+      ConfigurableApplicationContext context,
+      boolean authenticated)
+      throws Exception {
     try {
-      assertHealth("", 200, "UP");
-      assertHealth("/liveness", 200, "UP");
-      assertHealth("/readiness", 200, "UP");
+      assertHealth(serverPort, "", 200, "UP", authenticated);
+      assertHealth(serverPort, "/liveness", 200, "UP", authenticated);
+      assertHealth(serverPort, "/readiness", 200, "UP", authenticated);
 
       failed.set(true);
-      assertHealth("", 503, "DOWN");
+      assertHealth(serverPort, "", 503, "DOWN", authenticated);
       // A failed dependency must not turn a live, ready application into a failed probe.
-      assertHealth("/liveness", 200, "UP");
-      assertHealth("/readiness", 200, "UP");
+      assertHealth(serverPort, "/liveness", 200, "UP", authenticated);
+      assertHealth(serverPort, "/readiness", 200, "UP", authenticated);
 
       AvailabilityChangeEvent.publish(context, LivenessState.BROKEN);
       AvailabilityChangeEvent.publish(context, ReadinessState.REFUSING_TRAFFIC);
-      assertHealth("/liveness", 503, "DOWN");
-      assertHealth("/readiness", 503, "OUT_OF_SERVICE");
+      assertHealth(serverPort, "/liveness", 503, "DOWN", authenticated);
+      assertHealth(serverPort, "/readiness", 503, "OUT_OF_SERVICE", authenticated);
     } finally {
       failed.set(false);
       AvailabilityChangeEvent.publish(context, LivenessState.CORRECT);
@@ -145,16 +175,20 @@ class ResponseDisclosureTest {
     assertThat(valid.body()).isEqualTo("42");
   }
 
-  private void assertHealth(String suffix, int status, String health) throws Exception {
+  private void assertHealth(
+      int serverPort, String suffix, int status, String health, boolean authenticated)
+      throws Exception {
     // Boot advertises probe group names at the root independently of diagnostic visibility.
     String groups = suffix.isEmpty() ? ",\"groups\":[\"liveness\",\"readiness\"]" : "";
-    for (boolean authenticated : new boolean[] {false, true}) {
-      HttpResponse<String> response =
-          get("/actuator/health" + suffix, "application/json", authenticated);
-      assertThat(response.statusCode()).isEqualTo(status);
-      assertThat(mapper.readTree(response.body()))
-          .isEqualTo(mapper.readTree("{\"status\":\"" + health + "\"" + groups + "}"));
-    }
+    HttpResponse<String> response =
+        get(
+            serverPort,
+            "/actuator/health" + suffix,
+            "application/json",
+            authenticated ? "synthetic-disclosure-token" : null);
+    assertThat(response.statusCode()).isEqualTo(status);
+    assertThat(mapper.readTree(response.body()))
+        .isEqualTo(mapper.readTree("{\"status\":\"" + health + "\"" + groups + "}"));
   }
 
   private HttpResponse<String> get(String path, String accept) throws Exception {
@@ -163,11 +197,16 @@ class ResponseDisclosureTest {
 
   private HttpResponse<String> get(String path, String accept, boolean authenticated)
       throws Exception {
+    return get(port, path, accept, authenticated ? "synthetic-disclosure-token" : null);
+  }
+
+  private HttpResponse<String> get(int serverPort, String path, String accept, String token)
+      throws Exception {
     HttpRequest.Builder request =
-        HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
+        HttpRequest.newBuilder(URI.create("http://localhost:" + serverPort + path))
             .header("Accept", accept);
-    if (authenticated) {
-      request.header("Authorization", "synthetic-disclosure-token");
+    if (token != null) {
+      request.header("Authorization", token);
     }
     return client.send(request.GET().build(), HttpResponse.BodyHandlers.ofString());
   }
