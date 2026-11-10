@@ -35,7 +35,28 @@ class InputRejectionLoggerTest {
         new TypeMismatchException("abc", Integer.class),
         new MissingServletRequestParameterException("id", "String"),
         new HttpMessageNotReadableException("bad", new MockHttpInputMessage(new byte[0])),
-        new HttpRequestMethodNotSupportedException("TRACE"));
+        new HttpRequestMethodNotSupportedException("TRACE"),
+        invalidBody(),
+        invalidMethodArguments());
+  }
+
+  private static Exception invalidBody() {
+    try {
+      var parameter =
+          new org.springframework.core.MethodParameter(
+              Object.class.getDeclaredMethod("toString"), -1);
+      return new org.springframework.web.bind.MethodArgumentNotValidException(
+          parameter,
+          new org.springframework.validation.BeanPropertyBindingResult(new Object(), "request"));
+    } catch (NoSuchMethodException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  private static Exception invalidMethodArguments() {
+    return new org.springframework.web.method.annotation.HandlerMethodValidationException(
+        org.mockito.Mockito.mock(
+            org.springframework.validation.method.MethodValidationResult.class));
   }
 
   @ParameterizedTest

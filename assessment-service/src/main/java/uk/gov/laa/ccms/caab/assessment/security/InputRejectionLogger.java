@@ -9,7 +9,9 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.ServletRequestBindingException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
@@ -44,6 +46,8 @@ public class InputRejectionLogger implements HandlerExceptionResolver, Ordered {
         || ex instanceof ServletRequestBindingException
         || ex instanceof HttpMessageNotReadableException
         || ex instanceof HttpRequestMethodNotSupportedException
-        || ex instanceof HttpMediaTypeNotSupportedException;
+        || ex instanceof HttpMediaTypeNotSupportedException
+        || ex instanceof MethodArgumentNotValidException
+        || ex instanceof HandlerMethodValidationException;
   }
 }
