@@ -21,6 +21,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class AuditUserCleanupFilter extends OncePerRequestFilter {
 
   @Override
+  protected boolean shouldNotFilterErrorDispatch() {
+    return false;
+  }
+
+  @Override
   protected void doFilterInternal(
       final HttpServletRequest request,
       final HttpServletResponse response,

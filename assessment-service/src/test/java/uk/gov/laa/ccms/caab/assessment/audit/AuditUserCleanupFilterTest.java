@@ -62,4 +62,17 @@ class AuditUserCleanupFilterTest {
 
     assertNull(seen[0]);
   }
+
+  @Test
+  void clearsCurrentUserSetDuringAnErrorDispatch() throws Exception {
+    var request = new MockHttpServletRequest();
+    request.setDispatcherType(jakarta.servlet.DispatcherType.ERROR);
+    request.setAttribute(
+        org.springframework.web.util.WebUtils.ERROR_REQUEST_URI_ATTRIBUTE, "/cases");
+
+    filter.doFilter(
+        request, new MockHttpServletResponse(), (req, res) -> currentUserHolder.set("SOMEUSER"));
+
+    assertNull(currentUserHolder.get());
+  }
 }
