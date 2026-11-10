@@ -36,6 +36,8 @@ class InputRejectionLoggerTest {
         new MissingServletRequestParameterException("id", "String"),
         new HttpMessageNotReadableException("bad", new MockHttpInputMessage(new byte[0])),
         new HttpRequestMethodNotSupportedException("TRACE"),
+        new org.springframework.web.HttpMediaTypeNotAcceptableException(
+            "no acceptable representation"),
         invalidBody(),
         invalidMethodArguments());
   }
