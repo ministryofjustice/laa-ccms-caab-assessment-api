@@ -256,7 +256,7 @@ class SessionCorrelationFilterTest {
   }
 
   @org.junit.jupiter.api.Test
-  void theFilterIsRegisteredForErrorDispatchesToo() throws Exception {
+  void theConfiguredRegistrationIncludesErrorDispatches() throws Exception {
     var servletContext = org.mockito.Mockito.mock(jakarta.servlet.ServletContext.class);
     var dynamic = org.mockito.Mockito.mock(jakarta.servlet.FilterRegistration.Dynamic.class);
     org.mockito.Mockito.when(
@@ -265,8 +265,8 @@ class SessionCorrelationFilterTest {
                 org.mockito.ArgumentMatchers.any(jakarta.servlet.Filter.class)))
         .thenReturn(dynamic);
 
-    new org.springframework.boot.web.servlet.FilterRegistrationBean<>(
-            new SessionCorrelationFilter())
+    new SessionCorrelationConfiguration()
+        .sessionCorrelationFilterRegistration(new SessionCorrelationFilter())
         .onStartup(servletContext);
 
     var dispatchTypes =
