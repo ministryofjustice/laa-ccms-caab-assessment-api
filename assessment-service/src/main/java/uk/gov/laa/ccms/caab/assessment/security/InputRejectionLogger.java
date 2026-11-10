@@ -58,6 +58,7 @@ public class InputRejectionLogger implements HandlerExceptionResolver, Ordered {
         || ex instanceof HttpMediaTypeNotSupportedException
         || ex instanceof HttpMediaTypeNotAcceptableException
         || ex instanceof MethodArgumentNotValidException
-        || ex instanceof HandlerMethodValidationException;
+        || (ex instanceof HandlerMethodValidationException validation
+            && !validation.isForReturnValue());
   }
 }

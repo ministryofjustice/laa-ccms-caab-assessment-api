@@ -100,6 +100,24 @@ class InputRejectionLoggerTest {
   }
 
   @Test
+  void ignoresAReturnValueValidationFailure() {
+    var result =
+        org.mockito.Mockito.mock(
+            org.springframework.validation.method.MethodValidationResult.class);
+    org.mockito.Mockito.when(result.isForReturnValue()).thenReturn(true);
+
+    var resolved =
+        resolver.resolveException(
+            new MockHttpServletRequest("GET", "/home"),
+            new MockHttpServletResponse(),
+            null,
+            new org.springframework.web.method.annotation.HandlerMethodValidationException(result));
+
+    org.junit.jupiter.api.Assertions.assertNull(resolved);
+    org.mockito.Mockito.verifyNoInteractions(securityEventLogger);
+  }
+
+  @Test
   void ignoresOtherExceptions() {
     var result =
         resolver.resolveException(
