@@ -73,6 +73,8 @@ public class SessionCorrelationFilter extends OncePerRequestFilter {
     }
     if (value != null) {
       MDC.put(key, value);
+    } else {
+      MDC.remove(key);
     }
   }
 
