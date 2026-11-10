@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -50,10 +51,7 @@ public class SessionCorrelationFilter extends OncePerRequestFilter {
       put(previous, REQUEST_ID_KEY, requestId);
       put(previous, SESSION_ID_KEY, id);
       put(previous, SOURCE_IP_KEY, request.getRemoteAddr());
-      put(
-          previous,
-          FORWARDED_IP_KEY,
-          SourceAddress.forwardedIp(request.getHeader(FORWARDED_FOR_HEADER)));
+      put(previous, FORWARDED_IP_KEY, SourceAddress.forwardedIp(forwardedFor(request)));
       chain.doFilter(request, response);
     } finally {
       previous.forEach(
@@ -65,6 +63,13 @@ public class SessionCorrelationFilter extends OncePerRequestFilter {
             }
           });
     }
+  }
+
+  private static String forwardedFor(HttpServletRequest request) {
+    var values = request.getHeaders(FORWARDED_FOR_HEADER);
+    return values != null && values.hasMoreElements()
+        ? String.join(",", Collections.list(values))
+        : null;
   }
 
   private static void put(Map<String, String> previous, String key, String value) {
@@ -80,6 +85,11 @@ public class SessionCorrelationFilter extends OncePerRequestFilter {
 
   @Override
   protected boolean shouldNotFilterAsyncDispatch() {
+    return false;
+  }
+
+  @Override
+  protected boolean shouldNotFilterErrorDispatch() {
     return false;
   }
 
