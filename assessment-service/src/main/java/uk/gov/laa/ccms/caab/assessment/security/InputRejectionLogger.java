@@ -14,6 +14,7 @@ import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -24,15 +25,22 @@ import org.springframework.web.servlet.ModelAndView;
 @RequiredArgsConstructor
 public class InputRejectionLogger implements HandlerExceptionResolver, Ordered {
 
+  private static final String UNMATCHED_ROUTE = "[unmatched route]";
+
   private final SecurityEventLogger securityEventLogger;
 
   @Override
   public ModelAndView resolveException(
       HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
     if (isInputRejection(ex)) {
-      securityEventLogger.inputRejected(request.getMethod(), request.getRequestURI(), ex);
+      securityEventLogger.inputRejected(request.getMethod(), routeOf(request), ex);
     }
     return null;
+  }
+
+  private static String routeOf(HttpServletRequest request) {
+    Object route = request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
+    return route instanceof String pattern ? pattern : UNMATCHED_ROUTE;
   }
 
   @Override
