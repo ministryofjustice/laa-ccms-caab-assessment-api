@@ -53,19 +53,22 @@ class LoggingAcceptanceTest {
     // Each probe must initialize logging from its own production YAML, not reuse that context.
     logging.cleanUp();
     StandardEnvironment env = new StandardEnvironment();
+    Map<String, Object> testEnvironment =
+        new java.util.HashMap<>(
+            Map.of(
+                "ROOT_LOGGING_LEVEL",
+                "WARN",
+                "SPRING_LOGGING_LEVEL",
+                "ERROR",
+                "APP_LOGGING_LEVEL",
+                "INFO",
+                "HOSTNAME",
+                "logging-test-node"));
+    if (sourceAddress != null) {
+      testEnvironment.put("LOG_SOURCE_ADDRESS", sourceAddress);
+    }
     env.getPropertySources()
-        .addFirst(
-            new SystemEnvironmentPropertySource(
-                "logging-test-env",
-                Map.of(
-                    "ROOT_LOGGING_LEVEL",
-                    "WARN",
-                    "SPRING_LOGGING_LEVEL",
-                    "ERROR",
-                    "APP_LOGGING_LEVEL",
-                    "INFO",
-                    "HOSTNAME",
-                    "logging-test-node")));
+        .addFirst(new SystemEnvironmentPropertySource("logging-test-env", testEnvironment));
     SpringApplication app = new SpringApplication(ProbeConfiguration.class);
     app.setEnvironment(env);
     java.util.List<String> args =
@@ -78,9 +81,6 @@ class LoggingAcceptanceTest {
                 "--spring.main.banner-mode=off"));
     if (!profile.equals("default")) {
       args.add("--spring.profiles.active=" + profile);
-    }
-    if (sourceAddress != null) {
-      args.add("--logging.source-address.enabled=" + sourceAddress);
     }
     try (var context = (ServletWebServerApplicationContext) app.run(args.toArray(String[]::new))) {
       String version = context.getEnvironment().getRequiredProperty("spring.application.version");
