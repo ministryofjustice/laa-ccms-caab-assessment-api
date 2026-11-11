@@ -345,15 +345,4 @@ class SessionCorrelationFilterTest {
       return seen[0] != null;
     }
   }
-
-  @org.junit.jupiter.api.Test
-  void theConfiguredDefaultInApplicationYmlKeepsTheSwitchOff() {
-    var yaml = new org.springframework.beans.factory.config.YamlPropertiesFactoryBean();
-    yaml.setResources(
-        new org.springframework.core.io.FileSystemResource("src/main/resources/application.yml"));
-
-    org.junit.jupiter.api.Assertions.assertEquals(
-        "${LOG_SOURCE_ADDRESS:false}",
-        yaml.getObject().getProperty("logging.source-address.enabled"));
-  }
 }
