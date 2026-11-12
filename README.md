@@ -73,6 +73,9 @@ readability):
 | `ROOT_LOGGING_LEVEL`   | root                  | `info`  |
 | `SPRING_LOGGING_LEVEL` | `org.springframework` | `info`  |
 | `APP_LOGGING_LEVEL`    | `uk.gov.laa.ccms.caab` | `info`  |
+| `LOG_SOURCE_ADDRESS`   | caller addresses, not a level | `false` |
+
+`LOG_SOURCE_ADDRESS` adds `source.ip` (the TCP peer, usually the ingress or the calling service) and `network.forwarded_ip` (the right-most `X-Forwarded-For` entry, only when it is a valid IP) to every log line. It is off by default because an IP address is personal data. Turn it on per environment through the chart values.
 
 ## Common Components
 

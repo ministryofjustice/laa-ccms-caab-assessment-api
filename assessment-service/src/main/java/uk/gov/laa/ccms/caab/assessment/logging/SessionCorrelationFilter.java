@@ -6,8 +6,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -19,31 +23,84 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class SessionCorrelationFilter extends OncePerRequestFilter {
 
   private static final String ATTRIBUTE = SessionCorrelationFilter.class.getName() + ".sessionID";
+  private static final String REQUEST_ID_ATTRIBUTE =
+      SessionCorrelationFilter.class.getName() + ".requestId";
+  private static final String REQUEST_ID_KEY = "request_id";
+  private static final String REQUEST_ID_HEADER = "X-Request-Id";
+  private static final String SESSION_ID_KEY = "sessionID";
+  private static final String SOURCE_IP_KEY = "source.ip";
+  private static final String FORWARDED_IP_KEY = "network.forwarded_ip";
+  private static final String FORWARDED_FOR_HEADER = "X-Forwarded-For";
+
+  private final boolean logSourceAddress;
+
+  public SessionCorrelationFilter(
+      @Value("${logging.source-address.enabled:false}") boolean logSourceAddress) {
+    this.logSourceAddress = logSourceAddress;
+  }
 
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws ServletException, IOException {
-    String previous = MDC.get("sessionID");
+    Map<String, String> previous = new HashMap<>();
     try {
+      String requestId = (String) request.getAttribute(REQUEST_ID_ATTRIBUTE);
+      if (requestId == null) {
+        requestId = UUID.randomUUID().toString();
+        request.setAttribute(REQUEST_ID_ATTRIBUTE, requestId);
+      }
+      response.setHeader(REQUEST_ID_HEADER, requestId);
       String id = (String) request.getAttribute(ATTRIBUTE);
       if (id == null) {
         id = correlationId(request);
         request.setAttribute(ATTRIBUTE, id);
       }
-      MDC.put("sessionID", id);
+      put(previous, REQUEST_ID_KEY, requestId);
+      put(previous, SESSION_ID_KEY, id);
+      put(previous, SOURCE_IP_KEY, logSourceAddress ? request.getRemoteAddr() : null);
+      put(
+          previous,
+          FORWARDED_IP_KEY,
+          logSourceAddress ? SourceAddress.forwardedIp(forwardedFor(request)) : null);
       chain.doFilter(request, response);
     } finally {
-      if (previous == null) {
-        MDC.remove("sessionID");
-      } else {
-        MDC.put("sessionID", previous);
-      }
+      previous.forEach(
+          (key, value) -> {
+            if (value == null) {
+              MDC.remove(key);
+            } else {
+              MDC.put(key, value);
+            }
+          });
+    }
+  }
+
+  private static String forwardedFor(HttpServletRequest request) {
+    var values = request.getHeaders(FORWARDED_FOR_HEADER);
+    return values != null && values.hasMoreElements()
+        ? String.join(",", Collections.list(values))
+        : null;
+  }
+
+  private static void put(Map<String, String> previous, String key, String value) {
+    if (!previous.containsKey(key)) {
+      previous.put(key, MDC.get(key));
+    }
+    if (value != null) {
+      MDC.put(key, value);
+    } else {
+      MDC.remove(key);
     }
   }
 
   @Override
   protected boolean shouldNotFilterAsyncDispatch() {
+    return false;
+  }
+
+  @Override
+  protected boolean shouldNotFilterErrorDispatch() {
     return false;
   }
 

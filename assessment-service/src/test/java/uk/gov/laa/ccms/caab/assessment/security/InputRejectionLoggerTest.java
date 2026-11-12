@@ -1,0 +1,138 @@
+package uk.gov.laa.ccms.caab.assessment.security;
+
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.TypeMismatchException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mock.http.MockHttpInputMessage;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+
+@ExtendWith(MockitoExtension.class)
+class InputRejectionLoggerTest {
+
+  @Mock private SecurityEventLogger securityEventLogger;
+
+  @InjectMocks private InputRejectionLogger resolver;
+
+  static Stream<Exception> rejections() {
+    return Stream.of(
+        new MaxUploadSizeExceededException(1L),
+        new TypeMismatchException("abc", Integer.class),
+        new MissingServletRequestParameterException("id", "String"),
+        new HttpMessageNotReadableException("bad", new MockHttpInputMessage(new byte[0])),
+        new HttpRequestMethodNotSupportedException("TRACE"),
+        new org.springframework.web.HttpMediaTypeNotAcceptableException(
+            "no acceptable representation"),
+        invalidBody(),
+        invalidMethodArguments());
+  }
+
+  private static Exception invalidBody() {
+    try {
+      var parameter =
+          new org.springframework.core.MethodParameter(
+              Object.class.getDeclaredMethod("toString"), -1);
+      return new org.springframework.web.bind.MethodArgumentNotValidException(
+          parameter,
+          new org.springframework.validation.BeanPropertyBindingResult(new Object(), "request"));
+    } catch (NoSuchMethodException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  private static Exception invalidMethodArguments() {
+    return new org.springframework.web.method.annotation.HandlerMethodValidationException(
+        org.mockito.Mockito.mock(
+            org.springframework.validation.method.MethodValidationResult.class));
+  }
+
+  @ParameterizedTest
+  @MethodSource("rejections")
+  void logsRejectionWithPathOnlyAndLeavesHandlingToOthers(Exception exception) {
+    var request = new MockHttpServletRequest("POST", "/assessments");
+    request.setAttribute(
+        org.springframework.web.servlet.HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE,
+        "/assessments");
+    request.setQueryString("ref=SENSITIVE");
+
+    var result = resolver.resolveException(request, new MockHttpServletResponse(), null, exception);
+
+    assertNull(result);
+    verify(securityEventLogger).inputRejected(eq("POST"), eq("/assessments"), eq(exception));
+  }
+
+  @Test
+  void logsTheRouteTemplateNotThePersonalDataInThePath() {
+    var request = new MockHttpServletRequest("GET", "/users/jane.doe%40example.com;jsessionid=abc");
+    request.setAttribute(
+        org.springframework.web.servlet.HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE,
+        "/users/{login-id}");
+    var exception = new TypeMismatchException("jane.doe@example.com", Integer.class);
+
+    resolver.resolveException(request, new MockHttpServletResponse(), null, exception);
+
+    verify(securityEventLogger).inputRejected(eq("GET"), eq("/users/{login-id}"), eq(exception));
+  }
+
+  @Test
+  void logsAFixedPathWhenNoRouteMatched() {
+    var request = new MockHttpServletRequest("TRACE", "/clients/AB123456C");
+    var exception = new HttpRequestMethodNotSupportedException("TRACE");
+
+    resolver.resolveException(request, new MockHttpServletResponse(), null, exception);
+
+    verify(securityEventLogger).inputRejected(eq("TRACE"), eq("[unmatched route]"), eq(exception));
+  }
+
+  @Test
+  void ignoresAReturnValueValidationFailure() {
+    var result =
+        org.mockito.Mockito.mock(
+            org.springframework.validation.method.MethodValidationResult.class);
+    org.mockito.Mockito.when(result.isForReturnValue()).thenReturn(true);
+
+    var resolved =
+        resolver.resolveException(
+            new MockHttpServletRequest("GET", "/home"),
+            new MockHttpServletResponse(),
+            null,
+            new org.springframework.web.method.annotation.HandlerMethodValidationException(result));
+
+    org.junit.jupiter.api.Assertions.assertNull(resolved);
+    org.mockito.Mockito.verifyNoInteractions(securityEventLogger);
+  }
+
+  @Test
+  void ignoresOtherExceptions() {
+    var result =
+        resolver.resolveException(
+            new MockHttpServletRequest("GET", "/home"),
+            new MockHttpServletResponse(),
+            null,
+            new IllegalStateException("boom"));
+
+    assertNull(result);
+    verifyNoInteractions(securityEventLogger);
+  }
+
+  @Test
+  void runsBeforeTheOtherResolvers() {
+    org.junit.jupiter.api.Assertions.assertEquals(
+        org.springframework.core.Ordered.HIGHEST_PRECEDENCE, resolver.getOrder());
+  }
+}
