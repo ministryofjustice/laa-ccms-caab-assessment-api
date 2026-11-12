@@ -18,9 +18,11 @@ laa.springboot.starter.oauth2:
   resourceserver:
     jwt:
       tenants:
-        - issuer-uri: https://login.microsoftonline.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/v2.0
+        # Placeholders to fill in, or override from the environment to point at a real tenant or a
+        # mock issuer without editing this file.
+        - issuer-uri: ${OAUTH2_ISSUER_URI:https://login.microsoftonline.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/v2.0}
           audiences:
-            - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+            - ${OAUTH2_AUDIENCE:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
   scopes-claim-path: scp
   authorized-roles: '[
       {
