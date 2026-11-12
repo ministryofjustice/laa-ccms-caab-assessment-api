@@ -191,10 +191,10 @@ paths:
 
 components:
   securitySchemes:
-    ApiKeyAuth:
-      type: apiKey
-      in: header
-      name: Authorization
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   parameters:
     assessmentType:
       name: name
@@ -393,5 +393,6 @@ components:
         target_entity_id:
           type: string
 
+
 security:
-  - ApiKeyAuth: []
+  - BearerAuth: []

@@ -6,6 +6,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -53,7 +55,9 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import uk.gov.laa.ccms.caab.assessment.advice.GlobalExceptionHandler;
 import uk.gov.laa.ccms.caab.assessment.exception.ApplicationException;
-import uk.gov.laa.springboot.auth.SecurityFilterChainAutoConfiguration;
+import uk.gov.laa.springboot.oauth2.SecurityFilterChainAutoConfiguration;
+import uk.gov.laa.springboot.oauth2.testsupport.StubJwtDecoder;
+import uk.gov.laa.springboot.oauth2.testsupport.StubJwtToken;
 
 /**
  * Exercises the production YAML through real HTTP, including the container's error dispatch. Only
@@ -64,13 +68,14 @@ import uk.gov.laa.springboot.auth.SecurityFilterChainAutoConfiguration;
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     properties = {
       "spring.config.location=file:src/main/resources/application.yml",
-      "AUTHORIZED_CLIENTS=[{\"name\":\"disclosure-test\",\"roles\":[\"ALL\"],"
-          + "\"token\":\"synthetic-disclosure-token\"}]",
-      "AUTHORIZED_ROLES=[{\"name\":\"ALL\",\"URIs\":[\"/**\"]}]",
-      "UNPROTECTED_URIS=/actuator/health/**"
+      "OAUTH2_ISSUER_URI=https://login.microsoftonline.com/disclosure-test-tenant/v2.0",
+      "OAUTH2_AUDIENCE=api://laa-ccms-caab-assessment-api",
+      "OAUTH2_ROLES=[{\"name\":\"ALL\",\"URIs\":[\"/**\"]}]",
+      "OAUTH2_UNPROTECTED_URIS=/actuator/health/**"
     })
 class ResponseDisclosureTest {
 
+  private static final String TOKEN = "synthetic-disclosure-token";
   private static final String DIAGNOSTIC = "synthetic-private-diagnostic";
   private static final String BUSINESS_MESSAGE = "The requested record is not available";
   private final HttpClient client = HttpClient.newHttpClient();
@@ -86,7 +91,7 @@ class ResponseDisclosureTest {
   }
 
   @Nested
-  @TestPropertySource(properties = "UNPROTECTED_URIS=/not-health")
+  @TestPropertySource(properties = "OAUTH2_UNPROTECTED_URIS=/not-health")
   class AuthenticatedHealthTests {
     @LocalServerPort private int protectedPort;
     @Autowired private AtomicBoolean protectedFailed;
@@ -185,7 +190,7 @@ class ResponseDisclosureTest {
             serverPort,
             "/actuator/health" + suffix,
             "application/json",
-            authenticated ? "synthetic-disclosure-token" : null);
+            authenticated ? TOKEN : null);
     assertThat(response.statusCode()).isEqualTo(status);
     assertThat(mapper.readTree(response.body()))
         .isEqualTo(mapper.readTree("{\"status\":\"" + health + "\"" + groups + "}"));
@@ -197,7 +202,7 @@ class ResponseDisclosureTest {
 
   private HttpResponse<String> get(String path, String accept, boolean authenticated)
       throws Exception {
-    return get(port, path, accept, authenticated ? "synthetic-disclosure-token" : null);
+    return get(port, path, accept, authenticated ? TOKEN : null);
   }
 
   private HttpResponse<String> get(int serverPort, String path, String accept, String token)
@@ -206,7 +211,7 @@ class ResponseDisclosureTest {
         HttpRequest.newBuilder(URI.create("http://localhost:" + serverPort + path))
             .header("Accept", accept);
     if (token != null) {
-      request.header("Authorization", token);
+      request.header("Authorization", "Bearer " + token);
     }
     return client.send(request.GET().build(), HttpResponse.BodyHandlers.ofString());
   }
@@ -239,6 +244,13 @@ class ResponseDisclosureTest {
     @Bean
     AtomicBoolean failed() {
       return new AtomicBoolean();
+    }
+
+    /** Stands in for the tenant resolver: this test is about what responses disclose. */
+    @Bean
+    JwtDecoder jwtDecoder() {
+      return StubJwtDecoder.of(
+          new StubJwtToken(TOKEN, "disclosure-test", new String[] {"ALL"}, null, Map.of()));
     }
 
     @Bean

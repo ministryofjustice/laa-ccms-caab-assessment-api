@@ -29,11 +29,17 @@ spring:
       enabled: true
 
 laa:
-  springboot.starter.auth:
-    authentication-header: "Authorization"
-    authorized-clients: ${AUTHORIZED_CLIENTS}
-    authorized-roles: ${AUTHORIZED_ROLES}
-    unprotected-uris: ${UNPROTECTED_URIS}
+  springboot.starter.oauth2:
+    resourceserver:
+      jwt:
+        tenants:
+          - issuer-uri: ${OAUTH2_ISSUER_URI}
+            audiences:
+              - ${OAUTH2_AUDIENCE}
+    # EntraID puts granted scopes in "scp", not the default "scope".
+    scopes-claim-path: scp
+    authorized-roles: ${OAUTH2_ROLES}
+    unprotected-uris: ${OAUTH2_UNPROTECTED_URIS}
 
 management:
   endpoint:

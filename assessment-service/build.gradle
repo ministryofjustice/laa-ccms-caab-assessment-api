@@ -68,7 +68,9 @@ dependencies {
     runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
 
     //Enable access token authentication
-    implementation 'uk.gov.justice.service.laa:laa-spring-boot-starter-auth'
+    implementation 'uk.gov.justice.service.laa:laa-spring-boot-starter-oauth2'
+    // The disclosure test authenticates with a bearer token backed by the stub decoder.
+    testImplementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
     //Metrics
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
