@@ -14,7 +14,7 @@ class SessionCorrelationFilterTest {
   @Test
   void statelessRequestHasCorrelationWithoutCreatingSessionAndCleansUpOnFailure() {
     var request = new MockHttpServletRequest();
-    var filter = new SessionCorrelationFilter();
+    var filter = new SessionCorrelationFilter(true);
     assertThrows(
         ServletException.class,
         () ->
@@ -39,7 +39,7 @@ class SessionCorrelationFilterTest {
         int index = i;
         var request = new MockHttpServletRequest();
         request.setSession(session);
-        new SessionCorrelationFilter()
+        new SessionCorrelationFilter(true)
             .doFilter(
                 request,
                 new MockHttpServletResponse(),
@@ -58,7 +58,7 @@ class SessionCorrelationFilterTest {
     var request = new MockHttpServletRequest();
     request.setAsyncSupported(true);
     var response = new MockHttpServletResponse();
-    var filter = new SessionCorrelationFilter();
+    var filter = new SessionCorrelationFilter(true);
     String[] ids = new String[2];
     filter.doFilter(
         request,
@@ -82,7 +82,7 @@ class SessionCorrelationFilterTest {
     request.addHeader("X-Request-Id", "attacker-supplied");
     var response = new MockHttpServletResponse();
     String[] seen = new String[1];
-    new SessionCorrelationFilter()
+    new SessionCorrelationFilter(true)
         .doFilter(request, response, (req, res) -> seen[0] = MDC.get("request_id"));
 
     assertNotNull(seen[0]);
@@ -96,7 +96,7 @@ class SessionCorrelationFilterTest {
     var request = new MockHttpServletRequest();
     request.setAsyncSupported(true);
     var response = new MockHttpServletResponse();
-    var filter = new SessionCorrelationFilter();
+    var filter = new SessionCorrelationFilter(true);
     String[] ids = new String[2];
     filter.doFilter(
         request,
@@ -133,7 +133,7 @@ class SessionCorrelationFilterTest {
     request.addHeader("X-Forwarded-For", "6.6.6.6, 203.0.113.9");
     String[] seen = new String[2];
 
-    new SessionCorrelationFilter()
+    new SessionCorrelationFilter(true)
         .doFilter(
             request,
             new MockHttpServletResponse(),
@@ -154,7 +154,7 @@ class SessionCorrelationFilterTest {
     request.addHeader("X-Forwarded-For", "6.6.6.6, 203.0.113.9");
     String[] seen = new String[1];
 
-    new SessionCorrelationFilter()
+    new SessionCorrelationFilter(true)
         .doFilter(
             request,
             new MockHttpServletResponse(),
@@ -169,7 +169,7 @@ class SessionCorrelationFilterTest {
     try {
       var request = new MockHttpServletRequest();
       request.setRemoteAddr("10.1.2.3");
-      new SessionCorrelationFilter()
+      new SessionCorrelationFilter(true)
           .doFilter(request, new MockHttpServletResponse(), (req, res) -> {});
       assertEquals("outer", MDC.get("source.ip"));
     } finally {
@@ -183,7 +183,7 @@ class SessionCorrelationFilterTest {
     request.addHeader("X-Forwarded-For", "1.2.3.4, <script>alert(1)</script>");
     String[] seen = new String[1];
 
-    new SessionCorrelationFilter()
+    new SessionCorrelationFilter(true)
         .doFilter(
             request,
             new MockHttpServletResponse(),
@@ -198,13 +198,13 @@ class SessionCorrelationFilterTest {
     try {
       String[] seen = new String[2];
       var request = new org.springframework.mock.web.MockHttpServletRequest();
-      new SessionCorrelationFilter()
+      new SessionCorrelationFilter(true)
           .doFilter(
               request,
               new org.springframework.mock.web.MockHttpServletResponse(),
               (req, res) -> seen[0] = MDC.get("network.forwarded_ip"));
       request.addHeader("X-Forwarded-For", "not-an-ip");
-      new SessionCorrelationFilter()
+      new SessionCorrelationFilter(true)
           .doFilter(
               request,
               new org.springframework.mock.web.MockHttpServletResponse(),
@@ -224,7 +224,7 @@ class SessionCorrelationFilterTest {
     var request = new MockHttpServletRequest();
     String[] first = new String[1];
     String[] second = new String[1];
-    var filter = new SessionCorrelationFilter();
+    var filter = new SessionCorrelationFilter(true);
 
     filter.doFilter(
         request, new MockHttpServletResponse(), (req, res) -> first[0] = MDC.get("request_id"));
@@ -246,7 +246,7 @@ class SessionCorrelationFilterTest {
     request.addHeader("X-Forwarded-For", "203.0.113.9");
     String[] seen = new String[1];
 
-    new SessionCorrelationFilter()
+    new SessionCorrelationFilter(true)
         .doFilter(
             request,
             new MockHttpServletResponse(),
@@ -266,7 +266,7 @@ class SessionCorrelationFilterTest {
         .thenReturn(dynamic);
 
     new SessionCorrelationConfiguration()
-        .sessionCorrelationFilterRegistration(new SessionCorrelationFilter())
+        .sessionCorrelationFilterRegistration(new SessionCorrelationFilter(true))
         .onStartup(servletContext);
 
     var dispatchTypes =
@@ -276,5 +276,73 @@ class SessionCorrelationFilterTest {
             .findFirst()
             .orElseThrow();
     org.junit.jupiter.api.Assertions.assertTrue(dispatchTypes.contains(DispatcherType.ERROR));
+  }
+
+  @org.junit.jupiter.api.Test
+  void sourceAddressesAreNotLoggedWhenTheSwitchIsOff() throws Exception {
+    var request = new MockHttpServletRequest();
+    request.setRemoteAddr("10.1.2.3");
+    request.addHeader("X-Forwarded-For", "203.0.113.9");
+    String[] seen = new String[3];
+
+    new SessionCorrelationFilter(false)
+        .doFilter(
+            request,
+            new MockHttpServletResponse(),
+            (req, res) -> {
+              seen[0] = MDC.get("source.ip");
+              seen[1] = MDC.get("network.forwarded_ip");
+              seen[2] = MDC.get("request_id");
+            });
+
+    org.junit.jupiter.api.Assertions.assertNull(seen[0]);
+    org.junit.jupiter.api.Assertions.assertNull(seen[1]);
+    org.junit.jupiter.api.Assertions.assertNotNull(seen[2]);
+  }
+
+  @org.junit.jupiter.api.Test
+  void anAddressAlreadyInTheContextIsNotLeftInPlaceWhenTheSwitchIsOff() throws Exception {
+    MDC.put("source.ip", "198.51.100.7");
+    try {
+      String[] seen = new String[1];
+
+      new SessionCorrelationFilter(false)
+          .doFilter(
+              new MockHttpServletRequest(),
+              new MockHttpServletResponse(),
+              (req, res) -> seen[0] = MDC.get("source.ip"));
+
+      org.junit.jupiter.api.Assertions.assertNull(seen[0]);
+    } finally {
+      MDC.remove("source.ip");
+    }
+  }
+
+  @org.junit.jupiter.api.Test
+  void theSwitchIsOffUnlessItIsConfigured() throws Exception {
+    org.junit.jupiter.api.Assertions.assertFalse(loggedWith(null));
+    org.junit.jupiter.api.Assertions.assertFalse(loggedWith("false"));
+    org.junit.jupiter.api.Assertions.assertTrue(loggedWith("true"));
+  }
+
+  private static boolean loggedWith(String switchValue) throws Exception {
+    try (var context =
+        new org.springframework.context.annotation.AnnotationConfigApplicationContext()) {
+      if (switchValue != null) {
+        org.springframework.boot.test.util.TestPropertyValues.of(
+                "logging.source-address.enabled=" + switchValue)
+            .applyTo(context);
+      }
+      context.register(SessionCorrelationFilter.class);
+      context.refresh();
+      var request = new MockHttpServletRequest();
+      request.setRemoteAddr("10.1.2.3");
+      String[] seen = new String[1];
+      context
+          .getBean(SessionCorrelationFilter.class)
+          .doFilter(
+              request, new MockHttpServletResponse(), (req, res) -> seen[0] = MDC.get("source.ip"));
+      return seen[0] != null;
+    }
   }
 }

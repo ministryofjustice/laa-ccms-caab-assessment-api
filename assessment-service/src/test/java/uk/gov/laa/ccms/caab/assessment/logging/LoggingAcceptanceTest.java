@@ -10,7 +10,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -40,8 +40,11 @@ import org.springframework.web.bind.annotation.RestController;
 class LoggingAcceptanceTest {
 
   @ParameterizedTest
-  @ValueSource(strings = {"default", "dev", "local"})
-  void verifiesLoggingForRequest(String profile, CapturedOutput output) throws Exception {
+  @CsvSource(
+      nullValues = "-",
+      value = {"default,-", "dev,-", "local,-", "default,true"})
+  void verifiesLoggingForRequest(String profile, String sourceAddress, CapturedOutput output)
+      throws Exception {
     LoggingSystem logging = LoggingSystem.get(getClass().getClassLoader());
     // Reproduce an earlier Spring test context having initialized the shared Logback context.
     logging.cleanUp();
@@ -50,19 +53,22 @@ class LoggingAcceptanceTest {
     // Each probe must initialize logging from its own production YAML, not reuse that context.
     logging.cleanUp();
     StandardEnvironment env = new StandardEnvironment();
+    Map<String, Object> testEnvironment =
+        new java.util.HashMap<>(
+            Map.of(
+                "ROOT_LOGGING_LEVEL",
+                "WARN",
+                "SPRING_LOGGING_LEVEL",
+                "ERROR",
+                "APP_LOGGING_LEVEL",
+                "INFO",
+                "HOSTNAME",
+                "logging-test-node"));
+    if (sourceAddress != null) {
+      testEnvironment.put("LOG_SOURCE_ADDRESS", sourceAddress);
+    }
     env.getPropertySources()
-        .addFirst(
-            new SystemEnvironmentPropertySource(
-                "logging-test-env",
-                Map.of(
-                    "ROOT_LOGGING_LEVEL",
-                    "WARN",
-                    "SPRING_LOGGING_LEVEL",
-                    "ERROR",
-                    "APP_LOGGING_LEVEL",
-                    "INFO",
-                    "HOSTNAME",
-                    "logging-test-node")));
+        .addFirst(new SystemEnvironmentPropertySource("logging-test-env", testEnvironment));
     SpringApplication app = new SpringApplication(ProbeConfiguration.class);
     app.setEnvironment(env);
     java.util.List<String> args =
@@ -95,6 +101,7 @@ class LoggingAcceptanceTest {
                             "http://localhost:"
                                 + context.getWebServer().getPort()
                                 + "/logging-probe"))
+                    .header("X-Forwarded-For", "203.0.113.9")
                     .GET()
                     .build(),
                 HttpResponse.BodyHandlers.ofString());
@@ -125,6 +132,14 @@ class LoggingAcceptanceTest {
         assertTrue(line.matches(".*\"traceId\":\"[0-9a-f]{16,32}\".*"), line);
         assertTrue(line.matches(".*\"spanId\":\"[0-9a-f]{16}\".*"), line);
         assertTrue(line.matches(".*\"sessionID\":\"[0-9a-f-]{36}\".*"), line);
+        if ("true".equals(sourceAddress)) {
+          assertTrue(line.matches(".*\"source\":\\{[^}]*\"ip\":\"[^\"]+\".*"), line);
+          assertTrue(
+              line.matches(".*\"network\":\\{[^}]*\"forwarded_ip\":\"203\\.0\\.113\\.9\".*"), line);
+        } else {
+          assertFalse(line.contains("\"forwarded_ip\""), line);
+          assertFalse(line.matches(".*\"source\":\\{.*"), line);
+        }
       }
     }
   }
@@ -139,10 +154,11 @@ class LoggingAcceptanceTest {
     MicrometerTracingAutoConfiguration.class,
     WebMvcObservationAutoConfiguration.class
   })
+  @org.springframework.context.annotation.Import(SessionCorrelationFilter.class)
   static class ProbeConfiguration {
     @Bean
-    SessionCorrelationFilter sessionCorrelationFilter() {
-      return new SessionCorrelationFilter();
+    static org.springframework.context.support.PropertySourcesPlaceholderConfigurer placeholders() {
+      return new org.springframework.context.support.PropertySourcesPlaceholderConfigurer();
     }
 
     @Bean
