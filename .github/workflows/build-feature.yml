@@ -53,7 +53,7 @@ jobs:
       java_version: '25'
       java_distribution: 'corretto'
       image_version: ${{ format('{0}-{1}', vars.IMAGE_PREFIX, needs.get-branch-ref.outputs.version) }}
-      jar_subproject: 'assessment-service'
+      dockerfile_path: 'Dockerfile'
       publish: false
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}

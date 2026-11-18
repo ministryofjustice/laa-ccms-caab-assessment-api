@@ -51,7 +51,7 @@ jobs:
       java_version: '25'
       java_distribution: 'corretto'
       image_version: ${{ format('{0}-{1}', vars.IMAGE_PREFIX, needs.build-and-publish-release.outputs.published_artifact_version) }}
-      jar_subproject: 'assessment-service'
+      dockerfile_path: 'Dockerfile'
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
       ecr_repository: ${{ vars.ECR_REPOSITORY }}
