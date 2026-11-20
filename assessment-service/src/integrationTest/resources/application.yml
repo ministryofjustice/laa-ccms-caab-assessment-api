@@ -1,20 +1,17 @@
-laa.springboot.starter.auth:
-  authentication-header: "Authorization"
-  authorized-clients: '[
-      {
-          "name": "integration-test-runner",
-          "roles": [
-              "ALL"
-          ],
-          "token": "78bd752c-814c-4fb5-801b-193839c8e768"
-      }
-  ]'
+laa.springboot.starter.oauth2:
+  resourceserver:
+    jwt:
+      tenants:
+        - issuer-uri: https://login.microsoftonline.com/integration-test-tenant/v2.0
+          audiences:
+            - api://laa-ccms-assessment-api
+  scopes-claim-path: scp
   authorized-roles: '[
       {
           "name": "ALL",
-          "URIs": [
+          "uris": [
               "/**"
           ]
       }
   ]'
-  unprotected-uris: [ "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/favicon.ico", "/open-api-specification.yml"]
+  unprotected-uris: [ "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/favicon.ico", "/open-api-specification.yml" ]
