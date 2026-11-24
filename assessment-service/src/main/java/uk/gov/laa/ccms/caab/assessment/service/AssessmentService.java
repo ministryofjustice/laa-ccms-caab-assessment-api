@@ -22,6 +22,7 @@ import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetails;
 import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.repository.OpaAssessmentLogRepository;
 import uk.gov.laa.ccms.caab.assessment.repository.OpaSessionRepository;
+import uk.gov.laa.ccms.caab.assessment.security.ProviderContext;
 
 /** Service class for handling assessment requests. */
 @Service
@@ -41,7 +42,12 @@ public class AssessmentService {
    */
   public AssessmentDetails getAssessments(
       final AssessmentDetail criteria, final List<String> names) {
-    OpaSession example = assessmentMapper.toOpaSession(criteria);
+    String callerProviderId = ProviderContext.getRequiredProviderId();
+    AssessmentDetail scopedCriteria = scopeCriteriaToCallerProvider(criteria, callerProviderId);
+    OpaSession example = assessmentMapper.toOpaSession(scopedCriteria);
+    if (example != null) {
+      example.setOwnerId(callerProviderId);
+    }
 
     List<OpaSession> opaSessions =
         opaSessionRepository.findAll(buildQuerySpecification(Example.of(example), names));
@@ -54,17 +60,20 @@ public class AssessmentService {
    *
    * @param assessmentId the assessment id
    * @return the assessment
-   * @throws ApplicationException if the assessment is not found
+   * @throws ApplicationException if the assessment is not found or owned by another provider
    */
   public AssessmentDetail getAssessment(Long assessmentId) {
-    return opaSessionRepository
-        .findById(assessmentId)
-        .map(assessmentMapper::toAssessmentDetail)
-        .orElseThrow(
-            () ->
-                new ApplicationException(
-                    String.format("Assessment with id %s not found", assessmentId),
-                    HttpStatus.NOT_FOUND));
+    String callerProviderId = ProviderContext.getRequiredProviderId();
+    OpaSession session =
+        opaSessionRepository
+            .findById(assessmentId)
+            .orElseThrow(
+                () ->
+                    new ApplicationException(
+                        String.format("Assessment with id %s not found", assessmentId),
+                        HttpStatus.NOT_FOUND));
+    verifySessionOwnership(session, callerProviderId);
+    return assessmentMapper.toAssessmentDetail(session);
   }
 
   /**
@@ -75,8 +84,17 @@ public class AssessmentService {
    */
   @Transactional
   public Long createAssessment(final AssessmentDetail assessmentDetail) {
+    String callerProviderId = ProviderContext.getRequiredProviderId();
+    if (assessmentDetail == null
+        || assessmentDetail.getProviderId() == null
+        || !assessmentDetail.getProviderId().trim().equals(callerProviderId)) {
+      throw new ApplicationException("Access denied for provider", HttpStatus.FORBIDDEN);
+    }
+    assessmentDetail.setId(null);
+    assessmentDetail.setProviderId(callerProviderId);
 
     OpaSession assessment = assessmentMapper.toOpaSession(assessmentDetail);
+    assessment.setOwnerId(callerProviderId);
     opaSessionRepository.save(assessment);
 
     return assessment.getId();
@@ -91,8 +109,13 @@ public class AssessmentService {
    */
   @Transactional
   public void deleteAssessments(final AssessmentDetail criteria, final List<String> names) {
+    String callerProviderId = ProviderContext.getRequiredProviderId();
+    AssessmentDetail scopedCriteria = scopeCriteriaToCallerProvider(criteria, callerProviderId);
 
-    OpaSession example = assessmentMapper.toOpaSession(criteria);
+    OpaSession example = assessmentMapper.toOpaSession(scopedCriteria);
+    if (example != null) {
+      example.setOwnerId(callerProviderId);
+    }
 
     List<OpaSession> sessionsToDelete =
         opaSessionRepository.findAll(buildQuerySpecification(Example.of(example), names));
@@ -124,7 +147,13 @@ public class AssessmentService {
         List<OpaAssessmentLog> assessmentLogs =
             opaAssessmentLogRepository.findByTargetIdAndAssessment(
                 session.getTargetId(), logAssessmentType);
-        logsToDelete.addAll(assessmentLogs);
+        for (OpaAssessmentLog assessmentLog : assessmentLogs) {
+          if (session.getOwnerId() == null
+              || assessmentLog.getOwnerId() == null
+              || session.getOwnerId().trim().equals(assessmentLog.getOwnerId().trim())) {
+            logsToDelete.add(assessmentLog);
+          }
+        }
       }
     }
 
@@ -146,23 +175,25 @@ public class AssessmentService {
    * Deletes a checkpoint from an assessment.
    *
    * @param assessmentId the ID of the assessment to delete the checkpoint from
-   * @throws ApplicationException if the checkpoint with the specified ID does not exist.
+   * @throws ApplicationException if the checkpoint with the specified ID does not exist or is owned
+   *     by another provider.
    */
   public void deleteCheckpoint(final Long assessmentId) {
-
-    opaSessionRepository
-        .findById(assessmentId)
-        .ifPresentOrElse(
-            assessment -> {
-              assessment.getCheckpoint().setOpaSession(null);
-              assessment.setCheckpoint(null);
-              opaSessionRepository.save(assessment);
-            },
-            () -> {
-              throw new ApplicationException(
-                  String.format("Assessment checkpoint with id: %s not found", assessmentId),
-                  HttpStatus.NOT_FOUND);
-            });
+    String callerProviderId = ProviderContext.getRequiredProviderId();
+    OpaSession assessment =
+        opaSessionRepository
+            .findById(assessmentId)
+            .orElseThrow(
+                () ->
+                    new ApplicationException(
+                        String.format("Assessment checkpoint with id: %s not found", assessmentId),
+                        HttpStatus.NOT_FOUND));
+    verifySessionOwnership(assessment, callerProviderId);
+    if (assessment.getCheckpoint() != null) {
+      assessment.getCheckpoint().setOpaSession(null);
+      assessment.setCheckpoint(null);
+    }
+    opaSessionRepository.save(assessment);
   }
 
   /**
@@ -170,18 +201,37 @@ public class AssessmentService {
    *
    * @param assessmentId The ID of the assessment to update.
    * @param assessment The new details to be applied to the assessment.
-   * @throws ApplicationException if the assessment with the specified ID does not exist.
+   * @throws ApplicationException if the assessment does not exist or is owned by another provider.
    */
   @Transactional
   public void updateAssessment(final Long assessmentId, final AssessmentDetail assessment) {
-
-    if (opaSessionRepository.existsById(assessmentId)) {
-      OpaSession session = assessmentMapper.toOpaSession(assessment);
-      opaSessionRepository.save(session);
-    } else {
-      throw new ApplicationException(
-          String.format("Assessment with id %s not found", assessmentId), HttpStatus.NOT_FOUND);
+    String callerProviderId = ProviderContext.getRequiredProviderId();
+    OpaSession existingSession =
+        opaSessionRepository
+            .findById(assessmentId)
+            .orElseThrow(
+                () ->
+                    new ApplicationException(
+                        String.format("Assessment with id %s not found", assessmentId),
+                        HttpStatus.NOT_FOUND));
+    verifySessionOwnership(existingSession, callerProviderId);
+    if (assessment == null) {
+      throw new ApplicationException("Assessment request body is required", HttpStatus.BAD_REQUEST);
     }
+    if (assessment.getProviderId() != null
+        && !assessment.getProviderId().trim().equals(callerProviderId)) {
+      throw new ApplicationException("Access denied for provider", HttpStatus.FORBIDDEN);
+    }
+    if (assessment.getId() != null && !assessment.getId().equals(assessmentId)) {
+      throw new ApplicationException(
+          "Assessment id in body does not match path parameter", HttpStatus.BAD_REQUEST);
+    }
+    assessment.setId(assessmentId);
+    assessment.setProviderId(callerProviderId);
+    OpaSession session = assessmentMapper.toOpaSession(assessment);
+    session.setId(assessmentId);
+    session.setOwnerId(callerProviderId);
+    opaSessionRepository.save(session);
   }
 
   /**
@@ -189,10 +239,11 @@ public class AssessmentService {
    *
    * @param assessmentId The ID of the assessment to update.
    * @param patch The new details to be applied to the assessment.
-   * @throws ApplicationException if the assessment with the specified ID does not exist.
+   * @throws ApplicationException if the assessment does not exist or is owned by another provider.
    */
   @Transactional
   public void patchAssessment(final Long assessmentId, final PatchAssessmentDetail patch) {
+    String callerProviderId = ProviderContext.getRequiredProviderId();
     OpaSession opaSession =
         opaSessionRepository
             .findById(assessmentId)
@@ -201,9 +252,35 @@ public class AssessmentService {
                     new ApplicationException(
                         String.format("Assessment with id %s not found", assessmentId),
                         HttpStatus.NOT_FOUND));
-
-    assessmentMapper.mapIntoOpaSession(opaSession, patch);
+    verifySessionOwnership(opaSession, callerProviderId);
+    if (patch != null
+        && patch.getProviderId() != null
+        && !patch.getProviderId().trim().equals(callerProviderId)) {
+      throw new ApplicationException("Access denied for provider", HttpStatus.FORBIDDEN);
+    }
+    if (patch != null) {
+      assessmentMapper.mapIntoOpaSession(opaSession, patch);
+    }
+    opaSession.setOwnerId(callerProviderId);
     opaSessionRepository.save(opaSession);
+  }
+
+  private static AssessmentDetail scopeCriteriaToCallerProvider(
+      final AssessmentDetail criteria, final String callerProviderId) {
+    AssessmentDetail effectiveCriteria = criteria != null ? criteria : new AssessmentDetail();
+    if (effectiveCriteria.getProviderId() != null
+        && !effectiveCriteria.getProviderId().trim().equals(callerProviderId)) {
+      throw new ApplicationException("Access denied for provider", HttpStatus.FORBIDDEN);
+    }
+    effectiveCriteria.setProviderId(callerProviderId);
+    return effectiveCriteria;
+  }
+
+  private static void verifySessionOwnership(
+      final OpaSession session, final String callerProviderId) {
+    if (session.getOwnerId() == null || !session.getOwnerId().trim().equals(callerProviderId)) {
+      throw new ApplicationException("Access denied for assessment", HttpStatus.FORBIDDEN);
+    }
   }
 
   /**

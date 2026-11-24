@@ -18,6 +18,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,10 +39,14 @@ import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetails;
 import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.repository.OpaAssessmentLogRepository;
 import uk.gov.laa.ccms.caab.assessment.repository.OpaSessionRepository;
+import uk.gov.laa.ccms.caab.assessment.security.ProviderContext;
 
 @SuppressWarnings({"unchecked"})
 @ExtendWith(MockitoExtension.class)
 class AssessmentServiceTest {
+
+  private static final String PROVIDER_ID = "12345";
+  private static final String OTHER_PROVIDER_ID = "99999";
 
   @Mock private OpaSessionRepository opaSessionRepository;
 
@@ -50,17 +56,25 @@ class AssessmentServiceTest {
 
   @InjectMocks private AssessmentService assessmentService;
 
+  @BeforeEach
+  void setUp() {
+    ProviderContext.setProviderId(PROVIDER_ID);
+  }
+
+  @AfterEach
+  void tearDown() {
+    ProviderContext.clear();
+  }
+
   @Test
   void testGetAssessments() {
-
-    String providerId = "providerId";
     String caseReferenceNumber = "caseReferenceNumber";
     String name = "name";
     String status = "status";
 
     AssessmentDetail criteria =
         new AssessmentDetail()
-            .providerId(providerId)
+            .providerId(PROVIDER_ID)
             .caseReferenceNumber(caseReferenceNumber)
             .status(status);
 
@@ -75,15 +89,37 @@ class AssessmentServiceTest {
 
     assessmentService.getAssessments(criteria, names);
 
+    assertEquals(PROVIDER_ID, session.getOwnerId());
     verify(assessmentMapper).toOpaSession(criteria);
     verify(opaSessionRepository).findAll(any(Specification.class));
     verify(assessmentMapper).toAssessmentDetails(List.of(session));
   }
 
   @Test
+  void getAssessments_forcesCallerProviderIdWhenOmittedAndRejectsMismatch() {
+    AssessmentDetail omittedCriteria = new AssessmentDetail().caseReferenceNumber("123");
+    OpaSession session = new OpaSession();
+    when(assessmentMapper.toOpaSession(omittedCriteria)).thenReturn(session);
+    when(opaSessionRepository.findAll(any(Specification.class))).thenReturn(List.of());
+    when(assessmentMapper.toAssessmentDetails(List.of())).thenReturn(new AssessmentDetails());
+
+    assessmentService.getAssessments(omittedCriteria, null);
+    assertEquals(PROVIDER_ID, omittedCriteria.getProviderId());
+    assertEquals(PROVIDER_ID, session.getOwnerId());
+
+    AssessmentDetail mismatchedCriteria = new AssessmentDetail().providerId(OTHER_PROVIDER_ID);
+    ApplicationException ex =
+        assertThrows(
+            ApplicationException.class,
+            () -> assessmentService.getAssessments(mismatchedCriteria, null));
+    assertEquals(HttpStatus.FORBIDDEN, ex.getHttpStatus());
+  }
+
+  @Test
   void testGetAssessmentFound() {
     Long assessmentId = 1L;
     OpaSession session = new OpaSession();
+    session.setOwnerId(PROVIDER_ID);
     AssessmentDetail expectedDetail = new AssessmentDetail();
 
     when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(session));
@@ -95,6 +131,22 @@ class AssessmentServiceTest {
     assertEquals(expectedDetail, result);
     verify(opaSessionRepository).findById(assessmentId);
     verify(assessmentMapper).toAssessmentDetail(session);
+  }
+
+  @Test
+  void testGetAssessmentForbiddenWhenOwnedByAnotherProvider() {
+    Long assessmentId = 1L;
+    OpaSession session = new OpaSession();
+    session.setOwnerId(OTHER_PROVIDER_ID);
+
+    when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(session));
+
+    ApplicationException thrown =
+        assertThrows(
+            ApplicationException.class, () -> assessmentService.getAssessment(assessmentId));
+
+    assertEquals(HttpStatus.FORBIDDEN, thrown.getHttpStatus());
+    verify(assessmentMapper, never()).toAssessmentDetail(any());
   }
 
   @Test
@@ -120,6 +172,7 @@ class AssessmentServiceTest {
     final Long assessmentId = 1L;
     final PatchAssessmentDetail patch = new PatchAssessmentDetail();
     final OpaSession opaSession = new OpaSession();
+    opaSession.setOwnerId(PROVIDER_ID);
 
     when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(opaSession));
 
@@ -128,6 +181,34 @@ class AssessmentServiceTest {
     verify(opaSessionRepository).findById(assessmentId);
     verify(assessmentMapper).mapIntoOpaSession(opaSession, patch);
     verify(opaSessionRepository).save(opaSession);
+  }
+
+  @Test
+  void patchAssessment_rejectsOtherFirmSessionOrMismatchedPatchProviderId() {
+    Long assessmentId = 1L;
+    OpaSession otherFirmSession = new OpaSession();
+    otherFirmSession.setOwnerId(OTHER_PROVIDER_ID);
+    when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(otherFirmSession));
+
+    ApplicationException ownerMismatch =
+        assertThrows(
+            ApplicationException.class,
+            () -> assessmentService.patchAssessment(assessmentId, new PatchAssessmentDetail()));
+    assertEquals(HttpStatus.FORBIDDEN, ownerMismatch.getHttpStatus());
+    verify(opaSessionRepository, never()).save(any());
+
+    OpaSession ownSession = new OpaSession();
+    ownSession.setOwnerId(PROVIDER_ID);
+    when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(ownSession));
+
+    PatchAssessmentDetail mismatchedPatch =
+        new PatchAssessmentDetail().providerId(OTHER_PROVIDER_ID);
+    ApplicationException bodyMismatch =
+        assertThrows(
+            ApplicationException.class,
+            () -> assessmentService.patchAssessment(assessmentId, mismatchedPatch));
+    assertEquals(HttpStatus.FORBIDDEN, bodyMismatch.getHttpStatus());
+    verify(opaSessionRepository, never()).save(any());
   }
 
   @Test
@@ -156,7 +237,7 @@ class AssessmentServiceTest {
   void deleteAssessments_deletesAssessmentsMatchingCriteriaAndNames() {
     AssessmentDetail criteria =
         new AssessmentDetail()
-            .providerId("providerId")
+            .providerId(PROVIDER_ID)
             .caseReferenceNumber("caseReferenceNumber")
             .status("status");
     List<String> names = List.of("name1", "name2");
@@ -173,10 +254,24 @@ class AssessmentServiceTest {
   }
 
   @Test
+  void deleteAssessments_rejectsMismatchedProviderId() {
+    AssessmentDetail criteria = new AssessmentDetail().providerId(OTHER_PROVIDER_ID);
+
+    ApplicationException thrown =
+        assertThrows(
+            ApplicationException.class,
+            () -> assessmentService.deleteAssessments(criteria, List.of("meansAssessment")));
+
+    assertEquals(HttpStatus.FORBIDDEN, thrown.getHttpStatus());
+    verify(opaSessionRepository, never()).findAll(any(Specification.class));
+    verify(opaSessionRepository, never()).deleteAll(anyList());
+  }
+
+  @Test
   void deleteAssessments_doesNothingWhenNoMatchingAssessments() {
     AssessmentDetail criteria =
         new AssessmentDetail()
-            .providerId("nonExistentProviderId")
+            .providerId(PROVIDER_ID)
             .caseReferenceNumber("nonExistentCaseReferenceNumber")
             .status("nonExistentStatus");
     List<String> names = List.of("nonExistentName");
@@ -196,7 +291,7 @@ class AssessmentServiceTest {
   void deleteAssessments_deletesAssessmentsAndLogs() {
     AssessmentDetail criteria =
         new AssessmentDetail()
-            .providerId("providerId")
+            .providerId(PROVIDER_ID)
             .caseReferenceNumber("caseReferenceNumber")
             .status("status");
     List<String> names = List.of("name1", "name2");
@@ -204,15 +299,19 @@ class AssessmentServiceTest {
     OpaSession session = new OpaSession();
     session.setAssessment("meritsAssessment");
     session.setTargetId("123");
+    session.setOwnerId(PROVIDER_ID);
     List<OpaSession> sessionsToDelete = List.of(session);
     Set<OpaAssessmentLog> logsToDelete = new HashSet<>();
     OpaAssessmentLog log = new OpaAssessmentLog();
+    log.setOwnerId(PROVIDER_ID);
+    OpaAssessmentLog otherFirmLog = new OpaAssessmentLog();
+    otherFirmLog.setOwnerId(OTHER_PROVIDER_ID);
     logsToDelete.add(log);
 
     when(assessmentMapper.toOpaSession(criteria)).thenReturn(session);
     when(opaSessionRepository.findAll(any(Specification.class))).thenReturn(sessionsToDelete);
     when(opaAssessmentLogRepository.findByTargetIdAndAssessment(session.getTargetId(), "MERITS"))
-        .thenReturn(List.of(log));
+        .thenReturn(List.of(log, otherFirmLog));
     doNothing().when(opaAssessmentLogRepository).deleteAll(logsToDelete);
     doNothing().when(opaSessionRepository).deleteAll(sessionsToDelete);
 
@@ -230,7 +329,7 @@ class AssessmentServiceTest {
   void deleteAssessments_doesNothingWhenNoSessionsOrLogs() {
     AssessmentDetail criteria =
         new AssessmentDetail()
-            .providerId("providerId")
+            .providerId(PROVIDER_ID)
             .caseReferenceNumber("caseReferenceNumber")
             .status("status");
     List<String> names = List.of("name1", "name2");
@@ -253,7 +352,6 @@ class AssessmentServiceTest {
   @Test
   @DisplayName("collectLogsToDelete should collect logs associated with sessions to delete")
   void collectLogsToDelete_collectsLogs() {
-    // Arrange
     OpaSession session = new OpaSession();
     session.setAssessment("meritsAssessment");
     session.setTargetId("123");
@@ -295,6 +393,7 @@ class AssessmentServiceTest {
   void deleteCheckpoint_deletesCheckpointWhenExists() {
     Long assessmentId = 1L;
     OpaSession session = new OpaSession();
+    session.setOwnerId(PROVIDER_ID);
     session.setCheckpoint(new OpaCheckpoint());
 
     when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(session));
@@ -304,6 +403,24 @@ class AssessmentServiceTest {
     verify(opaSessionRepository).findById(assessmentId);
     verify(opaSessionRepository).save(session);
     assertNull(session.getCheckpoint());
+  }
+
+  @Test
+  void deleteCheckpoint_throwsForbiddenWhenOwnedByAnotherProvider() {
+    Long assessmentId = 1L;
+    OpaSession session = new OpaSession();
+    session.setOwnerId(OTHER_PROVIDER_ID);
+    session.setCheckpoint(new OpaCheckpoint());
+
+    when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(session));
+
+    ApplicationException thrown =
+        assertThrows(
+            ApplicationException.class, () -> assessmentService.deleteCheckpoint(assessmentId));
+
+    assertEquals(HttpStatus.FORBIDDEN, thrown.getHttpStatus());
+    assertNotNull(session.getCheckpoint());
+    verify(opaSessionRepository, never()).save(any());
   }
 
   @Test
@@ -332,11 +449,14 @@ class AssessmentServiceTest {
     Long existingAssessmentId = 1L;
     AssessmentDetail assessmentDetail = new AssessmentDetail();
     assessmentDetail.setId(existingAssessmentId);
+    assessmentDetail.setProviderId(PROVIDER_ID);
     OpaSession existingOpaSession = new OpaSession();
     existingOpaSession.setId(existingAssessmentId);
+    existingOpaSession.setOwnerId(PROVIDER_ID);
 
+    when(opaSessionRepository.findById(existingAssessmentId))
+        .thenReturn(Optional.of(existingOpaSession));
     when(assessmentMapper.toOpaSession(assessmentDetail)).thenReturn(existingOpaSession);
-    when(opaSessionRepository.existsById(existingAssessmentId)).thenReturn(true);
 
     assessmentService.updateAssessment(existingAssessmentId, assessmentDetail);
 
@@ -344,22 +464,68 @@ class AssessmentServiceTest {
   }
 
   @Test
+  void updateAssessment_rejectsOtherFirmSessionOrMismatchedProviderIdOrId() {
+    Long assessmentId = 1L;
+    OpaSession otherSession = new OpaSession();
+    otherSession.setId(assessmentId);
+    otherSession.setOwnerId(OTHER_PROVIDER_ID);
+    when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(otherSession));
+
+    ApplicationException ownerForbidden =
+        assertThrows(
+            ApplicationException.class,
+            () ->
+                assessmentService.updateAssessment(
+                    assessmentId, new AssessmentDetail().providerId(PROVIDER_ID)));
+    assertEquals(HttpStatus.FORBIDDEN, ownerForbidden.getHttpStatus());
+
+    OpaSession ownSession = new OpaSession();
+    ownSession.setId(assessmentId);
+    ownSession.setOwnerId(PROVIDER_ID);
+    when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(ownSession));
+
+    ApplicationException bodyForbidden =
+        assertThrows(
+            ApplicationException.class,
+            () ->
+                assessmentService.updateAssessment(
+                    assessmentId, new AssessmentDetail().providerId(OTHER_PROVIDER_ID)));
+    assertEquals(HttpStatus.FORBIDDEN, bodyForbidden.getHttpStatus());
+
+    ApplicationException idMismatch =
+        assertThrows(
+            ApplicationException.class,
+            () ->
+                assessmentService.updateAssessment(
+                    assessmentId, new AssessmentDetail().id(99L).providerId(PROVIDER_ID)));
+    assertEquals(HttpStatus.BAD_REQUEST, idMismatch.getHttpStatus());
+
+    ApplicationException nullBody =
+        assertThrows(
+            ApplicationException.class,
+            () -> assessmentService.updateAssessment(assessmentId, null));
+    assertEquals(HttpStatus.BAD_REQUEST, nullBody.getHttpStatus());
+
+    verify(opaSessionRepository, never()).save(any());
+  }
+
+  @Test
   void updateAssessment_throwsExceptionWhenAssessmentNotFound() {
     Long nonExistingAssessmentId = 2L;
     AssessmentDetail assessmentDetail = new AssessmentDetail();
     assessmentDetail.setId(nonExistingAssessmentId);
-    OpaSession nonExistingOpaSession = new OpaSession();
-    nonExistingOpaSession.setId(nonExistingAssessmentId);
+    assessmentDetail.setProviderId(PROVIDER_ID);
 
-    when(opaSessionRepository.existsById(nonExistingAssessmentId)).thenReturn(false);
+    when(opaSessionRepository.findById(nonExistingAssessmentId)).thenReturn(Optional.empty());
 
-    Exception exception =
+    ApplicationException exception =
         assertThrows(
             ApplicationException.class,
             () -> {
               assessmentService.updateAssessment(nonExistingAssessmentId, assessmentDetail);
             });
 
+    assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
     assertEquals(
         String.format("Assessment with id %s not found", nonExistingAssessmentId),
         exception.getMessage());
@@ -368,7 +534,7 @@ class AssessmentServiceTest {
 
   @Test
   void testCreateAssessment() {
-    AssessmentDetail assessmentDetail = new AssessmentDetail();
+    AssessmentDetail assessmentDetail = new AssessmentDetail().id(99L).providerId(PROVIDER_ID);
     OpaSession session = new OpaSession();
     session.setId(1L);
 
@@ -377,10 +543,30 @@ class AssessmentServiceTest {
 
     Long createdId = assessmentService.createAssessment(assessmentDetail);
 
+    assertNull(assessmentDetail.getId());
     assertNotNull(createdId);
     assertEquals(session.getId(), createdId);
+    assertEquals(PROVIDER_ID, session.getOwnerId());
     verify(assessmentMapper).toOpaSession(assessmentDetail);
     verify(opaSessionRepository).save(session);
+  }
+
+  @Test
+  void createAssessment_rejectsMissingBlankOrMismatchedProviderId() {
+    for (AssessmentDetail invalid :
+        List.of(
+            new AssessmentDetail(),
+            new AssessmentDetail().providerId("   "),
+            new AssessmentDetail().providerId(OTHER_PROVIDER_ID))) {
+      ApplicationException ex =
+          assertThrows(
+              ApplicationException.class, () -> assessmentService.createAssessment(invalid));
+      assertEquals(HttpStatus.FORBIDDEN, ex.getHttpStatus());
+    }
+    ApplicationException nullBody =
+        assertThrows(ApplicationException.class, () -> assessmentService.createAssessment(null));
+    assertEquals(HttpStatus.FORBIDDEN, nullBody.getHttpStatus());
+    verify(opaSessionRepository, never()).save(any());
   }
 
   @Test

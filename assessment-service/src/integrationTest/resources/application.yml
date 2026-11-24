@@ -14,4 +14,4 @@ laa.springboot.starter.oauth2:
           ]
       }
   ]'
-  unprotected-uris: [ "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/favicon.ico", "/open-api-specification.yml" ]
+  unprotected-uris: [ "/actuator/health/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/favicon.ico", "/open-api-specification.yml" ]
