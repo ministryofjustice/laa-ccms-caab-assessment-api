@@ -13,6 +13,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -299,11 +300,82 @@ class AssessmentServiceTest {
 
     when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(session));
 
-    assessmentService.deleteCheckpoint(assessmentId);
+    assessmentService.deleteCheckpoint(assessmentId, null);
 
     verify(opaSessionRepository).findById(assessmentId);
     verify(opaSessionRepository).save(session);
     assertNull(session.getCheckpoint());
+  }
+
+  @Test
+  void deleteCheckpoint_throwsNotFoundWhenTheAssessmentHasNoCheckpoint() {
+    final Long assessmentId = 1L;
+    when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(new OpaSession()));
+
+    final ApplicationException thrown =
+        assertThrows(
+            ApplicationException.class,
+            () -> assessmentService.deleteCheckpoint(assessmentId, null));
+
+    assertEquals(HttpStatus.NOT_FOUND, thrown.getHttpStatus());
+    verify(opaSessionRepository, never()).save(any());
+  }
+
+  @Test
+  void deleteCheckpoint_deletesWhenTheCheckpointStillMatchesTheExpectedChecksum() {
+    final Long assessmentId = 1L;
+    final OpaCheckpoint checkpoint = checkpointWith("submitted interview");
+    final OpaSession session = new OpaSession();
+    session.setCheckpoint(checkpoint);
+    when(opaSessionRepository.findCheckpointForUpdate(assessmentId))
+        .thenReturn(Optional.of(checkpoint));
+    when(opaSessionRepository.findById(assessmentId)).thenReturn(Optional.of(session));
+
+    // Sent as an entity tag, quoted.
+    assessmentService.deleteCheckpoint(
+        assessmentId, "\"" + CheckpointChecksum.of(checkpoint.getInterviewData()) + "\"");
+
+    verify(opaSessionRepository).save(session);
+    assertNull(session.getCheckpoint());
+  }
+
+  @Test
+  void deleteCheckpoint_keepsTheCheckpointRewrittenSinceItWasRead() {
+    final Long assessmentId = 1L;
+    when(opaSessionRepository.findCheckpointForUpdate(assessmentId))
+        .thenReturn(Optional.of(checkpointWith("newer interview")));
+
+    final ApplicationException thrown =
+        assertThrows(
+            ApplicationException.class,
+            () ->
+                assessmentService.deleteCheckpoint(
+                    assessmentId,
+                    CheckpointChecksum.of("submitted interview".getBytes(StandardCharsets.UTF_8))));
+
+    assertEquals(HttpStatus.PRECONDITION_FAILED, thrown.getHttpStatus());
+    verify(opaSessionRepository, never()).findById(any());
+    verify(opaSessionRepository, never()).save(any());
+  }
+
+  @Test
+  void deleteCheckpoint_preconditionFailsWhenTheCheckpointIsAlreadyGone() {
+    final Long assessmentId = 1L;
+    when(opaSessionRepository.findCheckpointForUpdate(assessmentId)).thenReturn(Optional.empty());
+
+    final ApplicationException thrown =
+        assertThrows(
+            ApplicationException.class,
+            () -> assessmentService.deleteCheckpoint(assessmentId, "abc"));
+
+    assertEquals(HttpStatus.PRECONDITION_FAILED, thrown.getHttpStatus());
+    verify(opaSessionRepository, never()).save(any());
+  }
+
+  private static OpaCheckpoint checkpointWith(final String interviewData) {
+    final OpaCheckpoint checkpoint = new OpaCheckpoint();
+    checkpoint.setInterviewData(interviewData.getBytes(StandardCharsets.UTF_8));
+    return checkpoint;
   }
 
   @Test
@@ -316,7 +388,7 @@ class AssessmentServiceTest {
         assertThrows(
             ApplicationException.class,
             () -> {
-              assessmentService.deleteCheckpoint(assessmentId);
+              assessmentService.deleteCheckpoint(assessmentId, null);
             });
 
     assertEquals(HttpStatus.NOT_FOUND, thrown.getHttpStatus());
