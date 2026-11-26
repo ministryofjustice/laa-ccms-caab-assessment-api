@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
@@ -11,6 +12,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 import static uk.gov.laa.ccms.caab.assessment.audit.AuditorAwareImpl.currentUserHolder;
 
 import jakarta.transaction.Transactional;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 import org.springframework.test.context.jdbc.SqlMergeMode.MergeMode;
 import uk.gov.laa.ccms.caab.assessment.OracleContainerIntegrationTest;
+import uk.gov.laa.ccms.caab.assessment.exception.ApplicationException;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentAttributeDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentDetails;
@@ -33,6 +36,7 @@ import uk.gov.laa.ccms.caab.assessment.model.AssessmentEntityTypeDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentRelationshipDetail;
 import uk.gov.laa.ccms.caab.assessment.model.AssessmentRelationshipTargetDetail;
 import uk.gov.laa.ccms.caab.assessment.model.PatchAssessmentDetail;
+import uk.gov.laa.ccms.caab.assessment.service.CheckpointChecksum;
 
 @SpringBootTest
 @Sql(executionPhase = BEFORE_TEST_CLASS, scripts = "/sql/assessment_tables_create_schema.sql")
@@ -218,12 +222,49 @@ public class AssessmentControllerIntegrationTest extends OracleContainerIntegrat
   @Sql(scripts = "/sql/assessments_insert.sql")
   public void testDeleteCheckpoint_returns204() {
     final Long id = 26L;
-    ResponseEntity<Void> response = assessmentController.deleteAssessmentCheckpoint(id, "testUser");
+    ResponseEntity<Void> response =
+        assessmentController.deleteAssessmentCheckpoint(id, "testUser", null);
     assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 
     ResponseEntity<AssessmentDetail> assessmentResponse = assessmentController.getAssessment(id);
     assertNotNull(assessmentResponse.getBody());
     assertNull(assessmentResponse.getBody().getCheckpoint());
+  }
+
+  @Test
+  @Sql(scripts = "/sql/assessments_insert.sql")
+  public void testDeleteCheckpoint_withTheChecksumOfTheCheckpointRead_returns204() {
+    final Long id = 26L;
+    final String checksum =
+        CheckpointChecksum.of(
+            Base64.getDecoder()
+                .decode(
+                    assessmentController
+                        .getAssessment(id)
+                        .getBody()
+                        .getCheckpoint()
+                        .getInterviewData()));
+
+    ResponseEntity<Void> response =
+        assessmentController.deleteAssessmentCheckpoint(id, "testUser", checksum);
+    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    assertNull(assessmentController.getAssessment(id).getBody().getCheckpoint());
+  }
+
+  @Test
+  @Sql(scripts = "/sql/assessments_insert.sql")
+  public void testDeleteCheckpoint_withStaleChecksum_returns412AndKeepsTheCheckpoint() {
+    final Long id = 26L;
+
+    final ApplicationException thrown =
+        assertThrows(
+            ApplicationException.class,
+            () ->
+                assessmentController.deleteAssessmentCheckpoint(
+                    id, "testUser", CheckpointChecksum.of(new byte[] {1, 2, 3})));
+
+    assertEquals(HttpStatus.PRECONDITION_FAILED, thrown.getHttpStatus());
+    assertNotNull(assessmentController.getAssessment(id).getBody().getCheckpoint());
   }
 
   private static Stream<Arguments> updateAssessmentArguments_base() {

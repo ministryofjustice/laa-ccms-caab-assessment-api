@@ -74,9 +74,9 @@ public class AssessmentController implements AssessmentsApi {
 
   @Override
   public ResponseEntity<Void> deleteAssessmentCheckpoint(
-      final Long assessmentId, final String caabUserLoginId) {
+      final Long assessmentId, final String caabUserLoginId, final String ifMatch) {
 
-    assessmentService.deleteCheckpoint(assessmentId);
+    assessmentService.deleteCheckpoint(assessmentId, ifMatch);
 
     return ResponseEntity.noContent().build();
   }

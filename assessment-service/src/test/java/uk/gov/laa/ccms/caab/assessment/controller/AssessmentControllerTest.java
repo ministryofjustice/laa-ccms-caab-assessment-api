@@ -198,7 +198,21 @@ class AssessmentControllerTest {
                 .header("caab-User-Login-Id", "TestUser"))
         .andExpect(status().isNoContent());
 
-    verify(assessmentService).deleteCheckpoint(assessmentId);
+    verify(assessmentService).deleteCheckpoint(assessmentId, null);
+  }
+
+  @Test
+  public void deleteAssessmentCheckpoint_passesTheIfMatchChecksumToTheService() throws Exception {
+    final Long assessmentId = 1L;
+
+    this.mockMvc
+        .perform(
+            delete("/assessments/{assessment-id}/checkpoint", assessmentId)
+                .header("caab-User-Login-Id", "TestUser")
+                .header("If-Match", "\"abc123\""))
+        .andExpect(status().isNoContent());
+
+    verify(assessmentService).deleteCheckpoint(assessmentId, "\"abc123\"");
   }
 
   @Test

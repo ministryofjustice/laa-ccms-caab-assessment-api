@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uk.gov.laa.ccms.caab.assessment.constants.OpaAssessmentLogMap;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaAssessmentLog;
+import uk.gov.laa.ccms.caab.assessment.entity.OpaCheckpoint;
 import uk.gov.laa.ccms.caab.assessment.entity.OpaSession;
 import uk.gov.laa.ccms.caab.assessment.exception.ApplicationException;
 import uk.gov.laa.ccms.caab.assessment.mapper.AssessmentMapper;
@@ -143,26 +144,58 @@ public class AssessmentService {
   }
 
   /**
-   * Deletes a checkpoint from an assessment.
+   * Deletes a checkpoint from an assessment. When an expected checksum is given, the checkpoint row
+   * is locked and deleted only if its interview data still has that checksum, so a caller cannot
+   * delete a checkpoint that was rewritten after it read it.
    *
    * @param assessmentId the ID of the assessment to delete the checkpoint from
-   * @throws ApplicationException if the checkpoint with the specified ID does not exist.
+   * @param expectedChecksum SHA-256 hex of the interview data the caller read (optionally quoted as
+   *     an entity tag), or null to delete unconditionally
+   * @throws ApplicationException NOT_FOUND if the assessment or its checkpoint does not exist, or
+   *     PRECONDITION_FAILED if the checkpoint no longer matches the expected checksum
    */
-  public void deleteCheckpoint(final Long assessmentId) {
+  @Transactional
+  public void deleteCheckpoint(final Long assessmentId, final String expectedChecksum) {
 
-    opaSessionRepository
-        .findById(assessmentId)
-        .ifPresentOrElse(
-            assessment -> {
-              assessment.getCheckpoint().setOpaSession(null);
-              assessment.setCheckpoint(null);
-              opaSessionRepository.save(assessment);
-            },
-            () -> {
-              throw new ApplicationException(
-                  String.format("Assessment checkpoint with id: %s not found", assessmentId),
-                  HttpStatus.NOT_FOUND);
-            });
+    if (expectedChecksum != null) {
+      final boolean unchanged =
+          opaSessionRepository
+              .findCheckpointForUpdate(assessmentId)
+              .map(OpaCheckpoint::getInterviewData)
+              .map(CheckpointChecksum::of)
+              .filter(checksum -> checksum.equalsIgnoreCase(stripEntityTag(expectedChecksum)))
+              .isPresent();
+      if (!unchanged) {
+        throw new ApplicationException(
+            String.format("Assessment checkpoint with id: %s has changed", assessmentId),
+            HttpStatus.PRECONDITION_FAILED);
+      }
+    }
+
+    final OpaSession assessment =
+        opaSessionRepository
+            .findById(assessmentId)
+            .filter(session -> session.getCheckpoint() != null)
+            .orElseThrow(
+                () ->
+                    new ApplicationException(
+                        String.format("Assessment checkpoint with id: %s not found", assessmentId),
+                        HttpStatus.NOT_FOUND));
+
+    assessment.getCheckpoint().setOpaSession(null);
+    assessment.setCheckpoint(null);
+    opaSessionRepository.save(assessment);
+  }
+
+  private static String stripEntityTag(final String entityTag) {
+    String value = entityTag.trim();
+    if (value.startsWith("W/")) {
+      value = value.substring(2);
+    }
+    if (value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"")) {
+      value = value.substring(1, value.length() - 1);
+    }
+    return value;
   }
 
   /**

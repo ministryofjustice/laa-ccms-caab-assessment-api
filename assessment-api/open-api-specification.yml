@@ -175,6 +175,15 @@ paths:
       parameters:
         - $ref: '#/components/parameters/assessmentId'
         - $ref: '#/components/parameters/requiredUserLoginId'
+        - name: 'If-Match'
+          in: header
+          required: false
+          description: >-
+            SHA-256, as hex, of the checkpoint interview data the caller last read (the bytes the
+            base64 interviewData decodes to). When given, the checkpoint is deleted only if it still
+            matches; otherwise nothing changes and 412 is returned.
+          schema:
+            type: 'string'
       responses:
         '204':
           description: 'Successful deletion'
@@ -186,6 +195,8 @@ paths:
           description: 'Forbidden'
         '404':
           description: 'Not found'
+        '412':
+          description: 'Precondition failed - the checkpoint has changed since it was read'
         '500':
           description: 'Internal server error'
 
